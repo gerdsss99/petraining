@@ -1,0 +1,47 @@
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= title %></div>
+  <div class="panel-body">
+    <% if (rows.length) { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <% columns.forEach(function(c){ %><th><%= c.label %></th><% }); %>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.forEach(function(row){ %>
+            <tr>
+              <% columns.forEach(function(c){ %><td><%= row[c.key] %></td><% }); %>
+              <td>
+                <form method="POST" action="/admin/<%= resource %>/<%= row.id %>/for/<%= person.id %>?_method=DELETE" onsubmit="return confirm('Delete this record?');">
+                  <button type="submit" class="action-icon danger" style="border:none;cursor:pointer;">Del</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <div class="text-muted" style="margin-bottom:10px;">No records yet.</div>
+    <% } %>
+
+    <form class="inline-form" method="POST" action="/admin/people/<%= person.id %>/<%= resource %>">
+      <% addFields.forEach(function(f){ %>
+        <div class="form-group">
+          <label><%= f.label %></label>
+          <% if (f.type === 'select') { %>
+            <select name="<%= f.name %>">
+              <% f.options.forEach(function(o){ %><option value="<%= o %>"><%= o %></option><% }); %>
+            </select>
+          <% } else if (f.type === 'checkbox') { %>
+            <input type="checkbox" name="<%= f.name %>" checked>
+          <% } else { %>
+            <input type="<%= f.type || 'text' %>" name="<%= f.name %>">
+          <% } %>
+        </div>
+      <% }); %>
+      <button type="submit" class="btn btn-sm">Add</button>
+    </form>
+  </div>
+</div>

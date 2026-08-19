@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mdc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mdc_training_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-mdc_training}
+    volumes:
+      - mdc_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mdc}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-mdc}:${POSTGRES_PASSWORD:-mdc_training_pw}@db:5432/${POSTGRES_DB:-mdc_training}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-please}
+      APP_NAME: ${APP_NAME:-Mobile Data Computer}
+      CITY_NAME: ${CITY_NAME:-City of Training}
+      PORT: 3000
+      SEED_ON_START: ${SEED_ON_START:-true}
+    ports:
+      - "${HOST_PORT:-8080}:3000"
+
+volumes:
+  mdc_pgdata:

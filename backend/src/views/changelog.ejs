@@ -1,0 +1,17 @@
+<%- include('partials/top') %>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Changelog</div>
+  <div class="panel-body">
+    <% entries.forEach(function(e){ %>
+      <div style="margin-bottom:16px;">
+        <strong>v<%= e.version %></strong> <span class="text-muted"><%= e.date %></span>
+        <ul>
+          <% e.notes.forEach(function(n){ %><li><%= n %></li><% }); %>
+        </ul>
+      </div>
+    <% }); %>
+  </div>
+</div>
+
+<%- include('partials/bottom') %>

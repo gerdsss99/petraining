@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login &middot; <%= appName %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="login-card">
+      <img src="/img/seal.svg" alt="Seal">
+      <h1><%= appName %></h1>
+      <p class="subtitle"><%= cityName %></p>
+      <div class="training-banner">Training environment &mdash; fictional data only.</div>
+      <% if (error) { %>
+        <div class="login-error"><%= error %></div>
+      <% } %>
+      <form method="POST" action="/login">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn" style="width:100%;">Sign In</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

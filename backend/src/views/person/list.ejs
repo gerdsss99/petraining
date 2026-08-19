@@ -1,0 +1,35 @@
+<%- include('../partials/top') %>
+
+<form class="search-bar" method="GET" action="/person">
+  <input type="text" name="q" placeholder="Search by first or last name..." value="<%= q %>">
+  <button class="btn" type="submit">Search</button>
+</form>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Person Lookup Results</div>
+  <div class="panel-body <%= people.length ? '' : 'empty' %>">
+    <% if (!people.length) { %>
+      No profiles found.
+    <% } else { %>
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Age</th><th>Department</th><th>Title</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% people.forEach(function(p) { %>
+            <tr>
+              <td>#<%= p.id %></td>
+              <td><a href="/person/<%= p.id %>"><%= p.firstName %> <%= p.lastName %></a></td>
+              <td><%= p.age || '—' %></td>
+              <td><%= p.departmentName || '—' %></td>
+              <td><%= p.rankTitle || '—' %></td>
+              <td><a class="action-icon" href="/person/<%= p.id %>">View</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/bottom') %>

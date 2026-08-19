@@ -1,0 +1,185 @@
+<%- include('../partials/top') %>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= person ? 'Edit Profile' : 'New Profile' %></div>
+  <div class="panel-body">
+    <form method="POST" action="<%= person ? ('/admin/people/' + person.id + '?_method=PUT') : '/admin/people' %>">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" name="firstName" required value="<%= person ? person.firstName : '' %>">
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" name="lastName" required value="<%= person ? person.lastName : '' %>">
+        </div>
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" name="age" value="<%= person && person.age ? person.age : '' %>">
+        </div>
+        <div class="form-group">
+          <label>Photo URL</label>
+          <input type="text" name="imageUrl" value="<%= person && person.imageUrl ? person.imageUrl : '' %>">
+        </div>
+        <div class="form-group">
+          <label>Badge Number</label>
+          <input type="number" name="badgeNumber" value="<%= person && person.badgeNumber ? person.badgeNumber : '' %>">
+        </div>
+        <div class="form-group">
+          <label>Job Title</label>
+          <input type="text" name="rankTitle" value="<%= person && person.rankTitle ? person.rankTitle : '' %>" placeholder="e.g. Parking Officer">
+        </div>
+        <div class="form-group">
+          <label>Department (type to create new)</label>
+          <input type="text" name="departmentName" list="dept-list" value="<%= person && person.departmentName ? person.departmentName : '' %>">
+          <datalist id="dept-list">
+            <% departments.forEach(function(d){ %><option value="<%= d.name %>"><% }); %>
+          </datalist>
+        </div>
+        <div class="form-group checkbox">
+          <input type="checkbox" name="isPersonnel" id="isPersonnel" <%= person && person.isPersonnel ? 'checked' : '' %>>
+          <label for="isPersonnel" style="margin:0;">Counts as Department Personnel (dashboard stat)</label>
+        </div>
+      </div>
+      <button type="submit" class="btn"><%= person ? 'Save Changes' : 'Create Profile' %></button>
+      <a class="btn btn-outline" href="/admin">Cancel</a>
+    </form>
+  </div>
+</div>
+
+<% if (person) { %>
+
+  <% var citationRows = person.citations.map(function(c){
+       return { id: c.id, reason: c.reason, amount: '$' + c.amount, status: c.status, timestamp: new Date(c.timestamp).toDateString() };
+     }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Citations', resource: 'citations', person: person, rows: citationRows,
+        columns: [{key:'reason',label:'Reason'},{key:'amount',label:'Amount'},{key:'status',label:'Status'},{key:'timestamp',label:'Date'}],
+        addFields: [
+          {name:'reason', label:'Reason', type:'text'},
+          {name:'amount', label:'Amount', type:'number'},
+          {name:'status', label:'Status', type:'select', options:['Unpaid','Paid']}
+        ]
+      }) %>
+
+  <% var infractionRows = person.infractions.map(function(i){
+       return { id: i.id, type: i.type, remark: i.remark, status: i.status, timestamp: new Date(i.timestamp).toDateString() };
+     }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Infraction Records', resource: 'infractions', person: person, rows: infractionRows,
+        columns: [{key:'type',label:'Type'},{key:'remark',label:'Remark'},{key:'status',label:'Status'},{key:'timestamp',label:'Date'}],
+        addFields: [
+          {name:'type', label:'Type', type:'text'},
+          {name:'remark', label:'Remark', type:'text'},
+          {name:'status', label:'Status', type:'select', options:['Open','Closed']}
+        ]
+      }) %>
+
+  <% var warrantRows = person.arrestWarrants.map(function(w){
+       return { id: w.id, classification: w.classification, charges: w.charges, filedBy: w.filedBy, signedBy: w.signedBy || '—', status: w.status };
+     }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Arrest Warrants', resource: 'warrants', person: person, rows: warrantRows,
+        columns: [{key:'classification',label:'Classification'},{key:'charges',label:'Charges'},{key:'filedBy',label:'Filed By'},{key:'signedBy',label:'Signed By'},{key:'status',label:'Status'}],
+        addFields: [
+          {name:'classification', label:'Classification', type:'text'},
+          {name:'charges', label:'Charges', type:'text'},
+          {name:'filedBy', label:'Filed By', type:'text'},
+          {name:'signedBy', label:'Signed By', type:'text'},
+          {name:'status', label:'Status', type:'select', options:['Active','Served','Recalled']}
+        ]
+      }) %>
+
+  <% var vehicleRows = person.vehicles.map(function(v){
+       return { id: v.id, plate: v.plate, model: v.model, color: v.color, vin: v.vin, registered: v.registered ? 'Yes' : 'No', insured: v.insured ? 'Yes' : 'No' };
+     }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Registered Vehicles', resource: 'vehicles', person: person, rows: vehicleRows,
+        columns: [{key:'plate',label:'Plate'},{key:'model',label:'Model'},{key:'color',label:'Color'},{key:'vin',label:'VIN'},{key:'registered',label:'Registered'},{key:'insured',label:'Insured'}],
+        addFields: [
+          {name:'plate', label:'Plate', type:'text'},
+          {name:'vin', label:'VIN', type:'text'},
+          {name:'model', label:'Model', type:'text'},
+          {name:'color', label:'Color', type:'text'},
+          {name:'registered', label:'Registered', type:'checkbox'},
+          {name:'insured', label:'Insured', type:'checkbox'}
+        ]
+      }) %>
+
+  <% var licenseRows = person.licenses.map(function(l){
+       return { id: l.id, type: l.type, region: l.region, status: l.status, validUntil: l.validUntil ? new Date(l.validUntil).toDateString() : '—' };
+     }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Licenses', resource: 'licenses', person: person, rows: licenseRows,
+        columns: [{key:'type',label:'Type'},{key:'region',label:'Region'},{key:'status',label:'Status'},{key:'validUntil',label:'Valid Until'}],
+        addFields: [
+          {name:'type', label:'Type', type:'text'},
+          {name:'region', label:'Region', type:'text'},
+          {name:'status', label:'Status', type:'select', options:['Valid','Suspended','Revoked','Not Set']},
+          {name:'validUntil', label:'Valid Until', type:'date'}
+        ]
+      }) %>
+
+  <% var phoneRows = person.phones.map(function(p){ return { id: p.id, number: p.number, label: p.label || '—' }; }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Phones', resource: 'phones', person: person, rows: phoneRows,
+        columns: [{key:'number',label:'Number'},{key:'label',label:'Label'}],
+        addFields: [ {name:'number', label:'Number', type:'text'}, {name:'label', label:'Label', type:'text'} ]
+      }) %>
+
+  <% var residenceRows = person.residences.map(function(r){ return { id: r.id, address: r.address }; }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Residences', resource: 'residences', person: person, rows: residenceRows,
+        columns: [{key:'address',label:'Address'}],
+        addFields: [ {name:'address', label:'Address', type:'text'} ]
+      }) %>
+
+  <% var garageRows = person.garages.map(function(g){ return { id: g.id, name: g.name, address: g.address }; }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Garages', resource: 'garages', person: person, rows: garageRows,
+        columns: [{key:'name',label:'Name'},{key:'address',label:'Address'}],
+        addFields: [ {name:'name', label:'Name', type:'text'}, {name:'address', label:'Address', type:'text'} ]
+      }) %>
+
+  <% var businessRows = person.businesses.map(function(b){ return { id: b.id, name: b.name, role: b.role || '—' }; }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Businesses', resource: 'businesses', person: person, rows: businessRows,
+        columns: [{key:'name',label:'Name'},{key:'role',label:'Role'}],
+        addFields: [ {name:'name', label:'Name', type:'text'}, {name:'role', label:'Role', type:'text'} ]
+      }) %>
+
+  <% var cautionRows = person.cautionCodes.map(function(c){ return { id: c.id, code: c.code, detail: c.detail || '—' }; }); %>
+  <%- include('../partials/admin-child-table', {
+        title: 'Caution Codes', resource: 'caution-codes', person: person, rows: cautionRows,
+        columns: [{key:'code',label:'Code'},{key:'detail',label:'Detail'}],
+        addFields: [ {name:'code', label:'Code', type:'text'}, {name:'detail', label:'Detail', type:'text'} ]
+      }) %>
+
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Wanted Status</div>
+    <div class="panel-body">
+      <% if (person.wantedEntry && person.wantedEntry.active) { %>
+        <p><strong><%= person.wantedEntry.dangerLevel %></strong> &mdash; <%= person.wantedEntry.reason %>
+          <span class="text-muted">(posted by <%= person.wantedEntry.postedBy %>)</span></p>
+        <form method="POST" action="/admin/people/<%= person.id %>/wanted?_method=DELETE">
+          <button type="submit" class="btn btn-sm btn-danger">Clear Wanted Status</button>
+        </form>
+      <% } else { %>
+        <form class="inline-form" method="POST" action="/admin/people/<%= person.id %>/wanted">
+          <div class="form-group"><label>Reason</label><input type="text" name="reason" required></div>
+          <div class="form-group">
+            <label>Danger Level</label>
+            <select name="dangerLevel">
+              <option>Low</option><option>Medium</option><option>High</option><option>Extreme</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Posted By</label><input type="text" name="postedBy" required></div>
+          <button type="submit" class="btn btn-sm btn-danger">Post to Wanted Database</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+<% } %>
+
+<%- include('../partials/bottom') %>

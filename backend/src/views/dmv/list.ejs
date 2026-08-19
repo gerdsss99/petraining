@@ -1,0 +1,34 @@
+<%- include('../partials/top') %>
+
+<form class="search-bar" method="GET" action="/dmv">
+  <input type="text" name="q" placeholder="Search by plate, model, or VIN..." value="<%= q %>">
+  <button class="btn" type="submit">Search</button>
+</form>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> DMV Database</div>
+  <div class="panel-body <%= vehicles.length ? '' : 'empty' %>">
+    <% if (!vehicles.length) { %>
+      No vehicles found.
+    <% } else { %>
+      <table class="data-table">
+        <thead><tr><th>Plate</th><th>Model</th><th>Color</th><th>VIN</th><th>Registered</th><th>Insured</th><th>Owner</th></tr></thead>
+        <tbody>
+          <% vehicles.forEach(function(v){ %>
+            <tr>
+              <td><strong><%= v.plate %></strong></td>
+              <td><%= v.model %></td>
+              <td><%= v.color %></td>
+              <td><%= v.vin %></td>
+              <td><span class="status-pill <%= v.registered ? 'valid' : 'unpaid' %>"><%= v.registered ? 'Yes' : 'No' %></span></td>
+              <td><span class="status-pill <%= v.insured ? 'valid' : 'unpaid' %>"><%= v.insured ? 'Yes' : 'No' %></span></td>
+              <td><a href="/person/<%= v.ownerId %>"><%= v.ownerFirstName %> <%= v.ownerLastName %></a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/bottom') %>

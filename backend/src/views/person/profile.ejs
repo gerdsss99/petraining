@@ -1,0 +1,181 @@
+<%- include('../partials/top') %>
+
+<div class="profile-header">
+  <div class="profile-photo">
+    <% if (person.imageUrl) { %><img src="<%= person.imageUrl %>" alt=""><% } else { %>&#128100;<% } %>
+  </div>
+  <div>
+    <div class="profile-name"><%= person.firstName %> <%= person.lastName %> <span class="text-muted">#<%= person.id %></span></div>
+    <div class="profile-meta">
+      <%= person.departmentName || 'Civilian' %>
+      <% if (person.rankTitle) { %> &middot; <%= person.rankTitle %> <% } %>
+      <% if (person.badgeNumber) { %><span class="badge-id">#<%= person.badgeNumber %></span><% } %>
+    </div>
+  </div>
+  <div class="profile-age">Age: <%= person.age || '—' %></div>
+</div>
+
+<% if (person.wantedEntry && person.wantedEntry.active) { %>
+<div class="panel" style="border:1px solid var(--danger);">
+  <div class="panel-header" style="color:var(--danger);"><span class="collapse-dot" style="background:var(--danger);">!</span> Active Wanted Entry</div>
+  <div class="panel-body">
+    <strong><%= person.wantedEntry.dangerLevel %> Priority</strong> &mdash; <%= person.wantedEntry.reason %>
+    <div class="text-muted">Posted by <%= person.wantedEntry.postedBy %> on <%= person.wantedEntry.postedAt.toDateString() %></div>
+  </div>
+</div>
+<% } %>
+
+<div class="grid-3">
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Caution Codes</div>
+    <div class="panel-body <%= person.cautionCodes.length ? '' : 'empty' %>">
+      <% if (!person.cautionCodes.length) { %>Caution Codes Not Set<% } else { %>
+        <% person.cautionCodes.forEach(function(c){ %>
+          <div style="margin-bottom:6px;"><strong><%= c.code %></strong><% if (c.detail) { %> &mdash; <%= c.detail %><% } %></div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Licenses</div>
+    <div class="panel-body <%= person.licenses.length ? '' : 'empty' %>">
+      <% if (!person.licenses.length) { %>No Licenses On File<% } else { %>
+        <% person.licenses.forEach(function(l){ %>
+          <div style="margin-bottom:8px;">
+            <strong><%= l.type %></strong> (<%= l.region %>)<br>
+            <span class="status-pill <%= l.status.toLowerCase() %>"><%= l.status %></span>
+            <% if (l.validUntil) { %><span class="text-muted"> until <%= l.validUntil.toDateString() %></span><% } %>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Phones</div>
+    <div class="panel-body <%= person.phones.length ? '' : 'empty' %>">
+      <% if (!person.phones.length) { %>Phone Numbers Not Set<% } else { %>
+        <% person.phones.forEach(function(ph){ %>
+          <div style="margin-bottom:6px;">&#9742; <%= ph.number %> <% if (ph.label) { %><span class="text-muted">(<%= ph.label %>)</span><% } %></div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="grid-3">
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Registered Vehicles</div>
+    <div class="panel-body <%= person.vehicles.length ? '' : 'empty' %>">
+      <% if (!person.vehicles.length) { %>No Registered Vehicles<% } else { %>
+        <% person.vehicles.forEach(function(v){ %>
+          <div style="margin-bottom:8px;">
+            <strong><%= v.color %> <%= v.model %></strong><br>
+            <span class="text-muted"><%= v.plate %> &middot; #<%= v.vin %></span>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Residences</div>
+    <div class="panel-body <%= person.residences.length ? '' : 'empty' %>">
+      <% if (!person.residences.length) { %>Unknown Residences<% } else { %>
+        <% person.residences.forEach(function(r){ %>
+          <div style="margin-bottom:6px;">&#127968; <%= r.address %></div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Garages</div>
+    <div class="panel-body <%= person.garages.length ? '' : 'empty' %>">
+      <% if (!person.garages.length) { %>Unknown Garages<% } else { %>
+        <% person.garages.forEach(function(g){ %>
+          <div style="margin-bottom:6px;"><strong><%= g.name %></strong><br><span class="text-muted"><%= g.address %></span></div>
+        <% }); %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Businesses</div>
+  <div class="panel-body <%= person.businesses.length ? '' : 'empty' %>">
+    <% if (!person.businesses.length) { %>Unknown Businesses<% } else { %>
+      <% person.businesses.forEach(function(b){ %>
+        <span style="display:inline-block;margin-right:16px;"><strong><%= b.name %></strong><% if (b.role) { %> &mdash; <%= b.role %><% } %></span>
+      <% }); %>
+    <% } %>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Arrest Warrants</div>
+  <div class="panel-body <%= person.arrestWarrants.length ? '' : 'empty' %>">
+    <% if (!person.arrestWarrants.length) { %>No data available in table.<% } else { %>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Classification</th><th>Charges</th><th>Filed By</th><th>Signed By</th><th>Status</th></tr></thead>
+        <tbody>
+          <% person.arrestWarrants.forEach(function(w){ %>
+            <tr>
+              <td>#<%= w.id %></td><td><%= w.classification %></td><td><%= w.charges %></td>
+              <td><%= w.filedBy %></td><td><%= w.signedBy || '—' %></td>
+              <td><span class="status-pill <%= w.status.toLowerCase() %>"><%= w.status %></span></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Citations</div>
+  <div class="panel-body <%= person.citations.length ? '' : 'empty' %>">
+    <% if (!person.citations.length) { %>No data available in table.<% } else { %>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Status</th><th>Issued By</th></tr></thead>
+        <tbody>
+          <% person.citations.forEach(function(c){ %>
+            <tr>
+              <td>#<%= c.id %></td><td><%= c.timestamp.toDateString() %></td><td>$<%= c.amount.toLocaleString() %></td>
+              <td><%= c.reason %></td>
+              <td><span class="status-pill <%= c.status.toLowerCase() %>"><%= c.status %></span></td>
+              <td><%= c.issuedByFirstName ? c.issuedByFirstName + ' ' + c.issuedByLastName : '—' %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Infraction Records</div>
+  <div class="panel-body <%= person.infractions.length ? '' : 'empty' %>">
+    <% if (!person.infractions.length) { %>No data available in table.<% } else { %>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Timestamp</th><th>Type</th><th>Remark</th><th>Status</th></tr></thead>
+        <tbody>
+          <% person.infractions.forEach(function(i){ %>
+            <tr>
+              <td>#<%= i.id %></td><td><%= i.timestamp.toDateString() %></td><td><%= i.type %></td>
+              <td><%= i.remark %></td>
+              <td><span class="status-pill <%= i.status.toLowerCase() %>"><%= i.status %></span></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<% if (currentUser && currentUser.role === 'admin') { %>
+  <a class="btn btn-outline" href="/admin/people/<%= person.id %>/edit">Edit this profile in Admin</a>
+<% } %>
+
+<%- include('../partials/bottom') %>

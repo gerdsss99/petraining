@@ -1,0 +1,62 @@
+<%- include('partials/top') %>
+
+<div class="stat-row">
+  <div class="stat-tile">
+    <div class="icon icon-orange">&#128101;</div>
+    <div>
+      <div class="value"><%= stats.personnel %></div>
+      <div class="label">Department Personnel</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="icon icon-green">&#128663;</div>
+    <div>
+      <div class="value"><%= stats.vehicles %></div>
+      <div class="label">Registered Vehicles</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="icon icon-blue">&#128193;</div>
+    <div>
+      <div class="value"><%= stats.records %></div>
+      <div class="label">Logged Records</div>
+    </div>
+  </div>
+  <div class="stat-tile">
+    <div class="icon icon-red">&#128100;</div>
+    <div>
+      <div class="value"><%= stats.apbs %></div>
+      <div class="label">Active Wanted Entries</div>
+    </div>
+  </div>
+</div>
+
+<% if (currentUser && currentUser.employee) { %>
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= currentUser.employee.firstName %> <%= currentUser.employee.lastName %></div>
+  <div class="panel-body" style="display:flex; align-items:center; gap:20px;">
+    <div class="profile-photo">
+      <% if (currentUser.employee.imageUrl) { %>
+        <img src="<%= currentUser.employee.imageUrl %>" alt="">
+      <% } else { %>&#128100;<% } %>
+    </div>
+    <div>
+      <div class="profile-name"><%= currentUser.employee.firstName %> <%= currentUser.employee.lastName %></div>
+      <div class="profile-meta"><%= cityName %> Government &middot; <%= currentUser.employee.rankTitle || 'Staff' %>
+        <span class="badge-id">#<%= currentUser.employee.badgeNumber %></span>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Welcome</div>
+  <div class="panel-body">
+    <p class="mb-0">Use the sidebar to search the Person Database, DMV Database, and Wanted Database. This is a training
+    replica populated entirely with fictional example data &mdash; use it to practice the lookup workflow before working
+    on the live server.</p>
+  </div>
+</div>
+
+<%- include('partials/bottom') %>

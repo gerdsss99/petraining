@@ -1,0 +1,29 @@
+<%- include('../partials/top') %>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> Wanted Database</div>
+  <div class="panel-body <%= entries.length ? '' : 'empty' %>">
+    <% if (!entries.length) { %>
+      No active wanted entries.
+    <% } else { %>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Name</th><th>Danger Level</th><th>Reason</th><th>Posted By</th><th>Posted At</th><th></th></tr></thead>
+        <tbody>
+          <% entries.forEach(function(e){ %>
+            <tr>
+              <td>#<%= e.id %></td>
+              <td><a href="/person/<%= e.personId %>"><%= e.personFirstName %> <%= e.personLastName %></a></td>
+              <td><span class="status-pill <%= ['high','extreme'].includes(e.dangerLevel.toLowerCase()) ? 'unpaid' : 'valid' %>"><%= e.dangerLevel %></span></td>
+              <td><%= e.reason %></td>
+              <td><%= e.postedBy %></td>
+              <td><%= e.postedAt.toDateString() %></td>
+              <td><a class="action-icon" href="/person/<%= e.personId %>">View</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/bottom') %>

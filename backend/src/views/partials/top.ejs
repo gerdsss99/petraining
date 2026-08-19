@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> &middot; <%= appName %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="/img/seal.svg" alt="Seal">
+        <span><%= appName %></span>
+      </div>
+      <ul class="sidebar-nav">
+        <li><a href="/" class="<%= currentPath === '/' ? 'active' : '' %>"><span class="nav-icon">&#9635;</span> Dashboard</a></li>
+        <li class="nav-group-label">Person Database</li>
+        <li><a class="sub <%= currentPath.startsWith('/person') ? 'active' : '' %>" href="/person">Person Lookup</a></li>
+        <li><a class="sub <%= currentPath.startsWith('/dmv') ? 'active' : '' %>" href="/dmv">DMV Database</a></li>
+        <li><a href="/wanted" class="<%= currentPath.startsWith('/wanted') ? 'active' : '' %>"><span class="nav-icon">&#9873;</span> Wanted Database</a></li>
+        <li><a href="/maps" class="<%= currentPath.startsWith('/maps') ? 'active' : '' %>"><span class="nav-icon">&#9679;</span> Maps</a></li>
+        <li><a href="/miscellaneous" class="<%= currentPath.startsWith('/miscellaneous') ? 'active' : '' %>"><span class="nav-icon">&#9881;</span> Miscellaneous</a></li>
+        <% if (currentUser && currentUser.role === 'admin') { %>
+          <li class="nav-group-label">Administration</li>
+          <li><a href="/admin" class="<%= currentPath.startsWith('/admin') ? 'active' : '' %>"><span class="nav-icon">&#9873;</span> Admin Panel</a></li>
+        <% } %>
+        <li class="nav-group-label">&nbsp;</li>
+        <li><a href="/changelog" class="<%= currentPath.startsWith('/changelog') ? 'active' : '' %>"><span class="nav-icon">&lt;/&gt;</span> Changelog</a></li>
+      </ul>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title">
+          <% if (currentUser) { %>
+            <span><%= currentUser.employee ? currentUser.employee.rankTitle || 'Staff' : (currentUser.role === 'admin' ? 'Administrator' : 'Staff') %>
+              &mdash; <%= currentUser.employee ? currentUser.employee.firstName + ' ' + currentUser.employee.lastName : currentUser.username %></span>
+            <span class="badge-id">#<%= currentUser.employee ? currentUser.employee.badgeNumber : currentUser.id %></span>
+          <% } %>
+        </div>
+        <div class="topbar-right">
+          <span><%= serverTime %></span>
+          <% if (currentUser) { %>
+            <form method="POST" action="/logout">
+              <button type="submit" class="logout-btn">Log out</button>
+            </form>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="content">

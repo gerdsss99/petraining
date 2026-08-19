@@ -1,0 +1,89 @@
+<%- include('../partials/top') %>
+
+<div class="panel">
+  <div class="panel-header">
+    <span class="collapse-dot">&minus;</span> Training Profiles
+    <a href="/admin/people/new" class="btn btn-sm" style="margin-left:auto;">+ New Profile</a>
+  </div>
+  <div class="panel-body <%= people.length ? '' : 'empty' %>">
+    <% if (!people.length) { %>No profiles yet.<% } else { %>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Name</th><th>Department</th><th>Title</th><th>Badge</th><th></th></tr></thead>
+        <tbody>
+          <% people.forEach(function(p){ %>
+            <tr>
+              <td>#<%= p.id %></td>
+              <td><a href="/person/<%= p.id %>"><%= p.firstName %> <%= p.lastName %></a></td>
+              <td><%= p.departmentName || '—' %></td>
+              <td><%= p.rankTitle || '—' %></td>
+              <td><%= p.badgeNumber || '—' %></td>
+              <td>
+                <a class="action-icon" href="/admin/people/<%= p.id %>/edit">Edit</a>
+                <form method="POST" action="/admin/people/<%= p.id %>?_method=DELETE" style="display:inline;" onsubmit="return confirm('Delete this profile and all its records?');">
+                  <button type="submit" class="action-icon danger" style="border:none;cursor:pointer;">Del</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Login Accounts</div>
+    <div class="panel-body">
+      <table class="data-table">
+        <thead><tr><th>Username</th><th>Role</th><th>Linked Profile</th><th></th></tr></thead>
+        <tbody>
+          <% accounts.forEach(function(a){ %>
+            <tr>
+              <td><%= a.username %></td>
+              <td><%= a.role %></td>
+              <td><%= a.employeeFirstName ? a.employeeFirstName + ' ' + a.employeeLastName : '—' %></td>
+              <td>
+                <form method="POST" action="/admin/accounts/<%= a.id %>?_method=DELETE" style="display:inline;" onsubmit="return confirm('Delete this account?');">
+                  <button type="submit" class="action-icon danger" style="border:none;cursor:pointer;">Del</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+
+      <form class="inline-form" method="POST" action="/admin/accounts" style="margin-top:14px;">
+        <div class="form-group"><label>Username</label><input type="text" name="username" required></div>
+        <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
+        <div class="form-group">
+          <label>Role</label>
+          <select name="role"><option value="staff">Staff</option><option value="admin">Admin</option></select>
+        </div>
+        <div class="form-group">
+          <label>Linked Profile</label>
+          <select name="employeeId">
+            <option value="">— None —</option>
+            <% people.forEach(function(p){ %><option value="<%= p.id %>"><%= p.firstName %> <%= p.lastName %></option><% }); %>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm">Add Account</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="collapse-dot">&minus;</span> Departments</div>
+    <div class="panel-body <%= departments.length ? '' : 'empty' %>">
+      <% if (!departments.length) { %>
+        No departments yet &mdash; add one from a profile's edit form.
+      <% } else { %>
+        <ul class="mb-0">
+          <% departments.forEach(function(d){ %><li><%= d.name %></li><% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/bottom') %>
