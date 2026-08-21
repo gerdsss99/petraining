@@ -19,6 +19,14 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Set TRUST_PROXY=true when this app sits behind a reverse proxy that
+// terminates HTTPS (Apache, nginx, ...). It tells Express to trust the
+// X-Forwarded-Proto header from the proxy, which is required for secure
+// session cookies to work correctly.
+if (process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -38,6 +46,7 @@ app.use(
     cookie: {
       maxAge: 1000 * 60 * 60 * 12, // 12 hours
       httpOnly: true,
+      secure: process.env.TRUST_PROXY === 'true',
     },
   })
 );

@@ -29,8 +29,9 @@ services:
       CITY_NAME: ${CITY_NAME:-City of Training}
       PORT: 3000
       SEED_ON_START: ${SEED_ON_START:-true}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
     ports:
-      - "${HOST_PORT:-8080}:3000"
+      - "${BIND_ADDRESS:-0.0.0.0}:${HOST_PORT:-8080}:3000"
 
 volumes:
   mdc_pgdata:
