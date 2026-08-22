@@ -162,6 +162,29 @@ async function getVehicleFull(id) {
      WHERE v."id" = $1`,
     [id]
   );
+  if (!vehicle) return null;
+
+  // Citations carry a free-text vehiclePlate snapshot rather than a hard FK
+  // (an officer can cite a plate that isn't in the system), so this is
+  // matched the same way plate search is — ignoring spaces/case.
+  const citations = await many(
+    `SELECT c.*, e."firstName" AS "issuedByFirstName", e."lastName" AS "issuedByLastName"
+     FROM "Citation" c LEFT JOIN "Employee" e ON e."id" = c."issuedById"
+     WHERE UPPER(REPLACE(c."vehiclePlate", ' ', '')) = UPPER(REPLACE($1, ' ', ''))
+     ORDER BY c."timestamp" DESC`,
+    [vehicle.plate]
+  );
+
+  const infractionIds = [...new Set(citations.map((c) => c.infractionId).filter(Boolean))];
+  const relatedIncidents = infractionIds.length
+    ? await many(
+        `SELECT * FROM "Infraction" WHERE "id" = ANY($1::int[]) ORDER BY "timestamp" DESC`,
+        [infractionIds]
+      )
+    : [];
+
+  vehicle.citations = citations;
+  vehicle.relatedIncidents = relatedIncidents;
   return vehicle;
 }
 

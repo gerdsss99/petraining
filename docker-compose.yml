@@ -26,7 +26,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-mdc}:${POSTGRES_PASSWORD:-mdc_training_pw}@db:5432/${POSTGRES_DB:-mdc_training}
       SESSION_SECRET: ${SESSION_SECRET:-change-me-please}
       APP_NAME: ${APP_NAME:-Mobile Data Computer}
-      CITY_NAME: ${CITY_NAME:-City of Training}
+      CITY_NAME: ${CITY_NAME:-Los Santos}
       PORT: 3000
       SEED_ON_START: ${SEED_ON_START:-true}
       TRUST_PROXY: ${TRUST_PROXY:-false}

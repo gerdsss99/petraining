@@ -20,19 +20,29 @@ async function main() {
   `);
 
   console.log('Creating penal code reference list...');
+  // Straight from the San Andreas Penal Code (Title 4 — Traffic), just the
+  // number/name/class the way staff would look them up — the actual code
+  // text has tiered fines that don't reduce to one number, so those are
+  // left at 0 ("—" in the UI) rather than guessing.
   const penalCodeSeed = [
-    ['112', 'Illegal Parking', 'Infraction', 150],
-    ['118', 'Failure to Signal', 'Infraction', 100],
-    ['205', 'Reckless Driving', 'Misdemeanor', 500],
-    ['240', 'Assault', 'Misdemeanor', 750],
-    ['330', 'Disorderly Conduct', 'Misdemeanor', 300],
-    ['401', 'Grand Theft Auto', 'Felony', 0],
-    ['410', 'Speeding', 'Infraction', 250],
-    ['415', 'Unlicensed Operation of a Vehicle', 'Misdemeanor', 400],
-    ['418', 'Prohibited Parking: Third or more Offense', 'Infraction', 5000],
-    ['508', 'Evading Police', 'Felony', 0],
-    ['512', 'Resisting Arrest (Without Violence)', 'Misdemeanor', 600],
-    ['602', 'Trespassing', 'Infraction', 200],
+    ['401', 'Driving Without a Valid License', 'Misdemeanor', 0],
+    ['402', 'Driving On A Suspended License', 'Misdemeanor', 0],
+    ['403', "Failure to Produce Driver's License", 'Infraction', 1000],
+    ['404', 'Failure to Produce Vehicle Registration', 'Infraction', 1000],
+    ['405', 'Failure to Produce Proof of Insurance', 'Infraction', 1000],
+    ['406', 'Unregistered Vehicle', 'Infraction', 0],
+    ['407', 'No Insurance', 'Infraction', 0],
+    ['408', 'Hit and Run', 'Misdemeanor/Felony', 0],
+    ['409', 'Reckless Operation Of an Off-Road or Naval Vehicle', 'Misdemeanor', 0],
+    ['410', 'Speeding', 'Infraction', 0],
+    ['411', 'Excessive Speeding', 'Infraction', 0],
+    ['412', 'Failure to Yield/Stop to a Traffic Control Device', 'Infraction', 0],
+    ['413', 'Failure to Yield at Intersection', 'Infraction', 0],
+    ['414', 'Failure to Yield Entering Roadway', 'Infraction', 0],
+    ['415', 'Failure to Yield for Crosswalk', 'Infraction', 0],
+    ['416', 'Failure to Yield to an Emergency Vehicle', 'Infraction', 0],
+    ['417', 'Improper Lane Entry while Turning', 'Infraction', 0],
+    ['418', 'Prohibited Parking', 'Infraction', 0],
   ];
   const penalCodes = {};
   for (const [code, title, cls, fine] of penalCodeSeed) {
@@ -48,8 +58,8 @@ async function main() {
   console.log('Creating department...');
   const dept = (
     await pool.query('INSERT INTO "Department" ("name", "abbreviation") VALUES ($1, $2) RETURNING *', [
-      'City of Training Government',
-      'CTG',
+      'Los Santos Government',
+      'LSG',
     ])
   ).rows[0];
 
@@ -74,11 +84,11 @@ async function main() {
   await pool.query('INSERT INTO "Phone" ("number","label","personId") VALUES ($1,$2,$3)', ['14550101', 'Work', priya.id]);
   await pool.query(
     'INSERT INTO "License" ("type","region","status","validUntil","personId") VALUES ($1,$2,$3,$4,$5)',
-    ['Driving License', 'Training City', 'Valid', new Date('2030-01-01'), marcus.id]
+    ['Driving License', 'Los Santos', 'Valid', new Date('2030-01-01'), marcus.id]
   );
   await pool.query(
     'INSERT INTO "License" ("type","region","status","validUntil","personId") VALUES ($1,$2,$3,$4,$5)',
-    ['Driving License', 'Training City', 'Valid', new Date('2029-06-15'), priya.id]
+    ['Driving License', 'Los Santos', 'Valid', new Date('2029-06-15'), priya.id]
   );
 
   console.log('Creating civilian training profiles...');
@@ -102,16 +112,16 @@ async function main() {
   ).rows[0];
 
   await pool.query('INSERT INTO "Phone" ("number","personId") VALUES ($1,$2)', ['14559981', jordan.id]);
-  await pool.query('INSERT INTO "Residence" ("address","personId") VALUES ($1,$2)', ['48 Fictional Ave, Training City', jordan.id]);
+  await pool.query('INSERT INTO "Residence" ("address","personId") VALUES ($1,$2)', ['48 Fictional Ave, Los Santos', jordan.id]);
   await pool.query('INSERT INTO "Garage" ("name","address","personId") VALUES ($1,$2,$3)', [
     'Downtown Storage',
-    '12 Warehouse Row, Training City',
+    '12 Warehouse Row, Los Santos',
     jordan.id,
   ]);
   await pool.query('INSERT INTO "Business" ("name","role","personId") VALUES ($1,$2,$3)', ['Kessler Auto Repair', 'Owner', jordan.id]);
   await pool.query(
     'INSERT INTO "License" ("type","region","status","validUntil","personId") VALUES ($1,$2,$3,$4,$5)',
-    ['Driving License', 'Training City', 'Valid', new Date('2028-03-20'), jordan.id]
+    ['Driving License', 'Los Santos', 'Valid', new Date('2028-03-20'), jordan.id]
   );
   await pool.query('INSERT INTO "CautionCode" ("code","detail","personId") VALUES ($1,$2,$3)', [
     'CC-2',
@@ -126,7 +136,7 @@ async function main() {
   );
 
   await pool.query('INSERT INTO "Phone" ("number","personId") VALUES ($1,$2)', ['14559982', elena.id]);
-  await pool.query('INSERT INTO "Residence" ("address","personId") VALUES ($1,$2)', ['9 Fictional Blvd, Training City', elena.id]);
+  await pool.query('INSERT INTO "Residence" ("address","personId") VALUES ($1,$2)', ['9 Fictional Blvd, Los Santos', elena.id]);
   await pool.query(
     `INSERT INTO "Vehicle"
        ("plate","vin","model","color","vehicleClass","registered","insured","leased","ownerId")
@@ -153,7 +163,7 @@ async function main() {
   // Built the same way a real staff member would — by pasting a report from
   // the "reports website" straight into the Narrative field. Running it
   // through the real parser here doubles as a smoke test for it.
-  const speedingNarrativeRaw = `<strong>Priya Anand</strong> (<strong>#100002</strong>), on the <strong>22/Jan/2026</strong>, <strong>09:44</strong>.<br>Observed a <strong>Sabre GT</strong>, identification plate reading <strong>TRN001</strong>, registered to <strong>Jordan Kessler</strong>, traveling well above the posted limit on <strong>Innocence Boulevard</strong>, <strong>Training City</strong>.
+  const speedingNarrativeRaw = `<strong>Priya Anand</strong> (<strong>#100002</strong>), on the <strong>22/Jan/2026</strong>, <strong>09:44</strong>.<br>Observed a <strong>Sabre GT</strong>, identification plate reading <strong>TRN001</strong>, registered to <strong>Jordan Kessler</strong>, traveling well above the posted limit on <strong>Innocence Boulevard</strong>, <strong>Los Santos</strong>.
 <br>
 <br>
 <strong>Citation(s):</strong>
@@ -177,7 +187,7 @@ async function main() {
         speedingParsed.codes.map((c) => c.codeLabel).join('; '),
         'Closed',
         new Date('2026-01-22T09:44:00'),
-        'Innocence Boulevard, Downtown Training City',
+        'Innocence Boulevard, Downtown Los Santos',
         'Public',
         speedingParsed.displayNarrative,
         'Priya Anand',

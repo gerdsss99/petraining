@@ -26,7 +26,7 @@
       <div class="plate-graphic">
         <span class="plate-tab left"></span>
         <span class="plate-tab right"></span>
-        <div class="plate-state">State of Training</div>
+        <div class="plate-state">State of San Andreas</div>
         <div class="plate-number"><%= vehicle.plate %></div>
       </div>
 
@@ -70,7 +70,17 @@
     <table class="data-table">
       <thead><tr><th>#</th><th>Incident</th><th style="text-align:right;">Status</th></tr></thead>
       <tbody>
-        <tr><td colspan="3" class="text-center text-muted">No Related Incidents</td></tr>
+        <% if (!vehicle.relatedIncidents.length) { %>
+          <tr><td colspan="3" class="text-center text-muted">No Related Incidents</td></tr>
+        <% } else { %>
+          <% vehicle.relatedIncidents.forEach(function(inc){ %>
+            <tr>
+              <td>#<%= inc.id %></td>
+              <td><a href="/person/<%= vehicle.ownerId %>/infractions/<%= inc.id %>"><%= inc.remark %></a></td>
+              <td style="text-align:right;"><span class="status-pill <%= inc.status.toLowerCase() %>"><%= inc.status %></span></td>
+            </tr>
+          <% }); %>
+        <% } %>
       </tbody>
     </table>
   </div>
@@ -78,7 +88,23 @@
 
 <div class="panel">
   <div class="panel-header"><span class="collapse-dot">&#128203;</span> Outstanding Fines</div>
-  <div class="panel-body empty">No data available in table.</div>
+  <div class="panel-body <%= vehicle.citations.length ? '' : 'empty' %>">
+    <% if (!vehicle.citations.length) { %>No data available in table.<% } else { %>
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Street</th><th>Status</th><th>Issued By</th></tr></thead>
+        <tbody>
+          <% vehicle.citations.forEach(function(c){ %>
+            <tr>
+              <td>#<%= c.id %></td><td><%= c.timestamp.toDateString() %></td><td>$<%= c.amount.toLocaleString() %></td>
+              <td><%= c.reason %></td><td><%= c.streetName || '—' %></td>
+              <td><span class="status-pill <%= c.status.toLowerCase() %>"><%= c.status %></span></td>
+              <td><%= c.issuedByFirstName ? c.issuedByFirstName + ' ' + c.issuedByLastName : '—' %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
 </div>
 
 <div class="panel">

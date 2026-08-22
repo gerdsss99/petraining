@@ -58,7 +58,8 @@
         addFields: [
           {name:'reason', label:'Reason', type:'text'},
           {name:'amount', label:'Amount', type:'number'},
-          {name:'status', label:'Status', type:'select', options:['Unpaid','Paid']}
+          {name:'status', label:'Status', type:'select', options:['Unpaid','Paid']},
+          {name:'timestamp', label:'Date/Time (backdate, optional)', type:'datetime-local'}
         ]
       }) %>
 
@@ -71,7 +72,8 @@
         addFields: [
           {name:'type', label:'Type', type:'text'},
           {name:'remark', label:'Remark', type:'text'},
-          {name:'status', label:'Status', type:'select', options:['Open','Closed']}
+          {name:'status', label:'Status', type:'select', options:['Open','Closed']},
+          {name:'timestamp', label:'Date/Time (backdate, optional)', type:'datetime-local'}
         ]
       }) %>
 

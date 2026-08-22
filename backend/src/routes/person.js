@@ -72,7 +72,7 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
       return res.status(404).render('error', { title: 'Not Found', message: 'No profile with that ID.' });
     }
 
-    const { location, status, confidentialLevel, narrative } = req.body;
+    const { location, confidentialLevel, narrative } = req.body;
 
     if (!narrative || !narrative.trim()) {
       const penalCodes = await models.listPenalCodes();
@@ -121,10 +121,14 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
       ? `${req.currentUser.employee.firstName} ${req.currentUser.employee.lastName}`
       : (req.currentUser ? req.currentUser.username : 'Unknown');
 
-    const infraction = await models.createInfractionReport({
+    // Filing the report and issuing the citation are treated as one
+    // finished action, not a pending case — so every new report is closed
+    // on submit. Reopen it later via the Admin panel if a case needs to be
+    // revisited.
+    await models.createInfractionReport({
       personId: id,
       remark: codes.length ? codes.map((c) => c.codeLabel).join('; ') : 'Infraction Report',
-      status: status === 'Open' ? 'Open' : 'Closed',
+      status: 'Closed',
       location,
       confidentialLevel: confidentialLevel || 'Generic',
       narrative: parsed.displayNarrative,
@@ -133,7 +137,8 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
       codes,
     });
 
-    res.redirect(`/person/${id}/infractions/${infraction.id}`);
+    // No separate confirmation step — submitting is the whole action.
+    res.redirect(`/person/${id}`);
   } catch (err) {
     next(err);
   }

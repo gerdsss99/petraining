@@ -393,16 +393,17 @@ a.action-icon, a.action-icon:hover { text-decoration: none; }
   position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
   color: #fff; font-size: 11px; pointer-events: none;
 }
-select.pill-select, input.pill-input, button.pill-btn {
+.pill-select, .pill-input, .pill-btn {
   appearance: none; -webkit-appearance: none; -moz-appearance: none;
   border: none; border-radius: 6px;
   padding: 11px 34px 11px 20px;
   font-weight: 700; font-size: 12px; letter-spacing: .03em; text-transform: uppercase;
   color: #fff; cursor: pointer; min-width: 170px; text-align: center;
+  display: inline-block; text-decoration: none; box-sizing: border-box;
 }
-input.pill-input { padding: 11px 16px; text-transform: none; letter-spacing: normal; font-weight: 600; text-align: left; }
-input.pill-input::placeholder { color: rgba(255,255,255,.8); }
-button.pill-btn { padding: 11px 20px; min-width: 0; }
+.pill-input { padding: 11px 16px; text-transform: none; letter-spacing: normal; font-weight: 600; text-align: left; }
+.pill-input::placeholder { color: rgba(255,255,255,.8); }
+.pill-btn { padding: 11px 20px; min-width: 0; }
 .pill-teal { background: #17a2b8; }
 .pill-orange { background: #f0a80b; }
 .pill-red { background: #e5484d; }

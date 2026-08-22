@@ -57,7 +57,7 @@ app.use(loadCurrentUser);
 app.use((req, res, next) => {
   res.locals.serverTime = new Date().toLocaleTimeString('en-GB', { hour12: false });
   res.locals.appName = process.env.APP_NAME || 'Mobile Data Computer';
-  res.locals.cityName = process.env.CITY_NAME || 'City of Training';
+  res.locals.cityName = process.env.CITY_NAME || 'Los Santos';
   res.locals.currentPath = req.path;
   next();
 });

@@ -15,6 +15,10 @@ router.use(requireAdmin);
 const CHILD_RESOURCES = {
   vehicles: {
     table: 'Vehicle',
+    // Vehicle's owner column is "ownerId", not "personId" like every other
+    // child table — without this override the generic insert below would
+    // try to write a "personId" column that doesn't exist on Vehicle at all.
+    ownerColumn: 'ownerId',
     fields: {
       plate: 'string',
       vin: 'string',
@@ -30,11 +34,11 @@ const CHILD_RESOURCES = {
   },
   citations: {
     table: 'Citation',
-    fields: { amount: 'int', reason: 'string', status: 'string' },
+    fields: { amount: 'int', reason: 'string', status: 'string', timestamp: 'date' },
   },
   infractions: {
     table: 'Infraction',
-    fields: { type: 'string', remark: 'string', status: 'string' },
+    fields: { type: 'string', remark: 'string', status: 'string', timestamp: 'date' },
   },
   warrants: {
     table: 'ArrestWarrant',
@@ -231,7 +235,11 @@ router.post('/people/:personId/:resource', async (req, res, next) => {
 
     const personId = Number(req.params.personId);
     const data = buildData(config.fields, req.body);
-    data.personId = personId;
+    data[config.ownerColumn || 'personId'] = personId;
+
+    // A blank "backdate" field means "just use now()" — leaving it as an
+    // explicit null would violate the NOT NULL timestamp columns instead.
+    if ('timestamp' in data && data.timestamp === null) delete data.timestamp;
 
     await models.insertRow(config.table, data);
     res.redirect(`/admin/people/${personId}/edit`);
