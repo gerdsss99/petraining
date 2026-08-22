@@ -21,6 +21,8 @@
         <% if (currentUser && currentUser.role === 'admin') { %>
           <a href="/admin/people/<%= person.id %>/edit">Edit Profile</a>
         <% } %>
+        <a href="/person/<%= person.id %>/infractions/new">Create Infraction Report</a>
+        <a href="/person/<%= person.id %>/citations/new">Issue Citation</a>
         <a href="/dmv?q=<%= encodeURIComponent(person.lastName) %>">View Vehicles</a>
         <a href="/wanted">View Wanted Database</a>
       </div>
@@ -242,7 +244,10 @@
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Infraction Record</div>
+  <div class="panel-header">
+    <span class="collapse-dot">&minus;</span> Infraction Record
+    <a class="btn btn-sm" style="margin-left:auto;" href="/person/<%= person.id %>/infractions/new">+ Infraction Report</a>
+  </div>
   <div class="panel-body <%= person.infractions.length ? '' : 'empty' %>">
     <% if (!person.infractions.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
@@ -251,7 +256,14 @@
           <% person.infractions.forEach(function(i){ %>
             <tr>
               <td>#<%= i.id %></td>
-              <td><span class="action-icon">&#128196;</span><span class="action-icon link">&#128279;</span></td>
+              <td>
+                <% if (i.type === 'Infraction Report') { %>
+                  <a class="action-icon" title="View Record" href="/person/<%= person.id %>/infractions/<%= i.id %>">&#128196;</a>
+                  <a class="action-icon link" title="Issue Citation" href="/person/<%= person.id %>/citations/new?infractionId=<%= i.id %>">&#128279;</a>
+                <% } else { %>
+                  <span class="action-icon" style="opacity:.35;cursor:default;">&#128196;</span>
+                <% } %>
+              </td>
               <td><%= i.timestamp.toDateString() %></td><td><%= i.type %></td>
               <td><%= i.remark %></td>
               <td><span class="status-pill <%= i.status.toLowerCase() %>"><%= i.status %></span></td>

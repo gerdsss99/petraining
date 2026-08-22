@@ -118,7 +118,18 @@ a:hover { text-decoration: underline; }
   border-radius: 4px;
   padding: 5px 10px;
 }
-.topbar-search-icon { font-size: 11px; opacity: .6; }
+.topbar-search-icon {
+  font-size: 11px;
+  opacity: .6;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+.topbar-search-icon:hover { opacity: 1; }
 .topbar-search input {
   border: none;
   background: transparent;
@@ -141,6 +152,7 @@ a:hover { text-decoration: underline; }
   justify-content: center;
 }
 .icon-btn:hover { background: #f5f7fa; }
+a.icon-btn, a.icon-btn:hover { text-decoration: none; }
 
 .logout-btn {
   background: none;
@@ -153,7 +165,19 @@ a:hover { text-decoration: underline; }
 }
 .logout-btn:hover { background: #f5f7fa; }
 
+/* Shrink the search boxes on narrower screens instead of hiding them
+   outright — a maximized window on a laptop is easily under 1150px wide,
+   and losing top search there made it look "broken". Only truly cramped
+   widths (phones/small tablets) drop the inline boxes, and even then the
+   magnifying-glass icon-btn still gets you to /person as a fallback. */
 @media (max-width: 1150px) {
+  .topbar-search input { width: 80px; }
+}
+@media (max-width: 860px) {
+  .topbar-search input { width: 60px; }
+  .topbar-center { display: none; }
+}
+@media (max-width: 640px) {
   .topbar-search { display: none !important; }
 }
 
@@ -274,6 +298,38 @@ table.data-table tr:hover td { background: #fafbfc; }
 }
 .action-icon.link { background: #6f42c1; }
 .action-icon.danger { background: var(--danger); }
+a.action-icon, a.action-icon:hover { text-decoration: none; }
+
+/* Infraction report / citation forms */
+.infraction-codes-block { margin: 4px 0 14px; }
+.infraction-codes-header { display: flex; align-items: center; justify-content: space-between; }
+.infraction-codes-header label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.infraction-code-row { display: flex; gap: 8px; margin-bottom: 6px; }
+.infraction-code-row .code-input { flex: 1; }
+.infraction-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.section-subhead { margin: 18px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+.narrative-box {
+  white-space: pre-wrap;
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.evidence-gallery { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.evidence-gallery img { width: 140px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+
+@media (max-width: 900px) {
+  .infraction-meta-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* Profile header */
 .profile-header {

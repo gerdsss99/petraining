@@ -166,6 +166,105 @@ async function getVehicleFull(id) {
 }
 
 // ---------------------------------------------------------------------
+// Penal codes / infraction reports / citations
+// ---------------------------------------------------------------------
+async function listPenalCodes() {
+  return many('SELECT * FROM "PenalCode" ORDER BY "code"');
+}
+
+// Best-effort lookup for the "paste a code" field on the infraction report
+// form. Staff may type just the number ("410") or paste something longer
+// like "410 - Speeding (I)" — we try an exact match on the whole string
+// first, then fall back to matching the leading token.
+async function findPenalCodeByCode(raw) {
+  const value = (raw || '').trim();
+  if (!value) return null;
+  const exact = await one('SELECT * FROM "PenalCode" WHERE LOWER("code") = LOWER($1)', [value]);
+  if (exact) return exact;
+  const leadingToken = value.split(/[\s,;-]+/)[0];
+  if (leadingToken && leadingToken !== value) {
+    return one('SELECT * FROM "PenalCode" WHERE LOWER("code") = LOWER($1)', [leadingToken]);
+  }
+  return null;
+}
+
+// Creates an Infraction row plus its attached InfractionCode rows in one
+// go. `codes` is an array of { penalCodeId, codeLabel, fineAmount }.
+async function createInfractionReport(data) {
+  const infraction = await one(
+    `INSERT INTO "Infraction"
+       ("personId","type","remark","status","location","confidentialLevel","narrative","reportedBy","evidenceUrls")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+    [
+      data.personId,
+      'Infraction Report',
+      data.remark,
+      data.status,
+      data.location || null,
+      data.confidentialLevel,
+      data.narrative || null,
+      data.reportedBy || null,
+      data.evidenceUrls || null,
+    ]
+  );
+
+  for (const c of data.codes) {
+    await pool.query(
+      `INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount") VALUES ($1,$2,$3,$4)`,
+      [infraction.id, c.penalCodeId || null, c.codeLabel, c.fineAmount || 0]
+    );
+  }
+
+  return infraction;
+}
+
+async function getInfractionFull(id) {
+  const infraction = await one(
+    `SELECT i.*, e."firstName" AS "personFirstName", e."lastName" AS "personLastName"
+     FROM "Infraction" i JOIN "Employee" e ON e."id" = i."personId"
+     WHERE i."id" = $1`,
+    [id]
+  );
+  if (!infraction) return null;
+
+  const [codes, citations] = await Promise.all([
+    many('SELECT * FROM "InfractionCode" WHERE "infractionId" = $1 ORDER BY "id"', [id]),
+    many(
+      `SELECT c.*, e."firstName" AS "issuedByFirstName", e."lastName" AS "issuedByLastName"
+       FROM "Citation" c LEFT JOIN "Employee" e ON e."id" = c."issuedById"
+       WHERE c."infractionId" = $1 ORDER BY c."timestamp" DESC`,
+      [id]
+    ),
+  ]);
+
+  infraction.codes = codes;
+  infraction.citations = citations;
+  infraction.evidenceList = (infraction.evidenceUrls || '')
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return infraction;
+}
+
+async function createCitation(data) {
+  return one(
+    `INSERT INTO "Citation" ("personId","issuedById","amount","reason","status","vehiclePlate","streetName","infractionId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+    [
+      data.personId,
+      data.issuedById || null,
+      data.amount,
+      data.reason,
+      data.status || 'Unpaid',
+      data.vehiclePlate || null,
+      data.streetName || null,
+      data.infractionId || null,
+    ]
+  );
+}
+
+// ---------------------------------------------------------------------
 // Wanted database
 // ---------------------------------------------------------------------
 async function getActiveWantedEntries() {
@@ -260,6 +359,11 @@ module.exports = {
   deleteEmployee,
   findVehicleByPlate,
   getVehicleFull,
+  listPenalCodes,
+  findPenalCodeByCode,
+  createInfractionReport,
+  getInfractionFull,
+  createCitation,
   getActiveWantedEntries,
   upsertWanted,
   clearWanted,

@@ -69,6 +69,44 @@ CREATE TABLE IF NOT EXISTS "Infraction" (
   "personId" INTEGER NOT NULL REFERENCES "Employee"("id") ON DELETE CASCADE
 );
 
+-- Added for the "Create Infraction Report" workflow.
+ALTER TABLE "Infraction" ADD COLUMN IF NOT EXISTS "location" TEXT;
+ALTER TABLE "Infraction" ADD COLUMN IF NOT EXISTS "confidentialLevel" TEXT NOT NULL DEFAULT 'Public';
+ALTER TABLE "Infraction" ADD COLUMN IF NOT EXISTS "narrative" TEXT;
+ALTER TABLE "Infraction" ADD COLUMN IF NOT EXISTS "reportedBy" TEXT;
+ALTER TABLE "Infraction" ADD COLUMN IF NOT EXISTS "evidenceUrls" TEXT;
+
+-- Reference list of fictional penal codes staff can attach to an infraction
+-- report. Stands in for "pasting a code from the reports website" — staff
+-- type/paste a code (e.g. "410") and it resolves against this table.
+CREATE TABLE IF NOT EXISTS "PenalCode" (
+  "id" SERIAL PRIMARY KEY,
+  "code" TEXT UNIQUE NOT NULL,
+  "title" TEXT NOT NULL,
+  "class" TEXT NOT NULL DEFAULT 'Infraction',
+  "fineAmount" INTEGER NOT NULL DEFAULT 0
+);
+
+-- One infraction report can have multiple penal codes attached. The label
+-- and fine are snapshotted at the time the report was filed so a later edit
+-- to the PenalCode reference table doesn't rewrite history.
+CREATE TABLE IF NOT EXISTS "InfractionCode" (
+  "id" SERIAL PRIMARY KEY,
+  "infractionId" INTEGER NOT NULL REFERENCES "Infraction"("id") ON DELETE CASCADE,
+  "penalCodeId" INTEGER REFERENCES "PenalCode"("id") ON DELETE SET NULL,
+  "codeLabel" TEXT NOT NULL,
+  "fineAmount" INTEGER NOT NULL DEFAULT 0
+);
+
+-- Added for the citation-issuing workflow. A citation can optionally be tied
+-- back to the infraction report it came from, and carries a free-text plate
+-- / street snapshot rather than a hard vehicle FK, since the officer may
+-- cite a plate that isn't in the system yet. Placed after "Infraction"
+-- exists so the FK reference resolves.
+ALTER TABLE "Citation" ADD COLUMN IF NOT EXISTS "vehiclePlate" TEXT;
+ALTER TABLE "Citation" ADD COLUMN IF NOT EXISTS "streetName" TEXT;
+ALTER TABLE "Citation" ADD COLUMN IF NOT EXISTS "infractionId" INTEGER REFERENCES "Infraction"("id") ON DELETE SET NULL;
+
 CREATE TABLE IF NOT EXISTS "ArrestWarrant" (
   "id" SERIAL PRIMARY KEY,
   "classification" TEXT NOT NULL,

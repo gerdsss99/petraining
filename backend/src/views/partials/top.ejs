@@ -60,14 +60,14 @@
 
         <div class="topbar-right">
           <form class="topbar-search" method="GET" action="/person">
-            <span class="topbar-search-icon">&#128269;</span>
+            <button type="submit" class="topbar-search-icon" title="Search Person">&#128269;</button>
             <input type="text" name="q" placeholder="Search Person">
           </form>
           <form class="topbar-search" method="GET" action="/dmv">
-            <span class="topbar-search-icon">&#128269;</span>
+            <button type="submit" class="topbar-search-icon" title="Search Vehicle">&#128269;</button>
             <input type="text" name="q" placeholder="Search Vehicle">
           </form>
-          <button type="button" class="icon-btn" title="Search">&#128269;</button>
+          <a class="icon-btn" title="Person Lookup" href="/person">&#128269;</a>
           <button type="button" class="icon-btn" title="Recent activity">&#8635;</button>
           <button type="button" class="icon-btn" title="Notifications">&#128276;</button>
           <button type="button" class="icon-btn" title="Menu">&#9776;</button>

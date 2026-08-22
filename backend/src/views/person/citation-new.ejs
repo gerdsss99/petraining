@@ -1,0 +1,48 @@
+<%- include('../partials/top') %>
+
+<div class="panel">
+  <div class="panel-header">
+    <span class="collapse-dot">&minus;</span> Issue Citation &mdash;
+    <a href="/person/<%= person.id %>"><%= person.firstName %> <%= person.lastName %></a>
+  </div>
+  <div class="panel-body">
+    <% if (infraction) { %>
+      <p class="text-muted">Linked to <a href="/person/<%= person.id %>/infractions/<%= infraction.id %>">Infraction Report #<%= infraction.id %></a>.</p>
+    <% } %>
+    <% if (error) { %>
+      <div class="search-error">&#9888; <%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/person/<%= person.id %>/citations">
+      <% if (infraction) { %><input type="hidden" name="infractionId" value="<%= infraction.id %>"><% } %>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Amount ($)</label>
+          <input type="number" name="amount" min="1" required
+            value="<%= infraction && infraction.codes.length ? infraction.codes[0].fineAmount || '' : '' %>">
+        </div>
+        <div class="form-group">
+          <label>Reason</label>
+          <input type="text" name="reason" required placeholder="e.g. 410. Speeding (I)"
+            value="<%= infraction && infraction.codes.length ? infraction.codes[0].codeLabel : '' %>">
+        </div>
+        <div class="form-group">
+          <label>Vehicle Plate (optional)</label>
+          <input type="text" name="vehiclePlate" list="person-plate-options" placeholder="e.g. TRN001">
+          <datalist id="person-plate-options">
+            <% person.vehicles.forEach(function(v){ %><option value="<%= v.plate %>"><% }); %>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label>Street Name (optional)</label>
+          <input type="text" name="streetName" placeholder="e.g. Innocence Boulevard">
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Issue Citation</button>
+      <a class="btn btn-outline" href="<%= infraction ? ('/person/' + person.id + '/infractions/' + infraction.id) : ('/person/' + person.id) %>">Cancel</a>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/bottom') %>

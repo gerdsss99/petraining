@@ -12,11 +12,36 @@ async function main() {
   console.log('Clearing existing data...');
   await pool.query(`
     TRUNCATE TABLE
-      "WantedEntry", "ArrestWarrant", "Infraction", "Citation", "CautionCode",
+      "WantedEntry", "ArrestWarrant", "InfractionCode", "Infraction", "Citation", "CautionCode",
       "License", "Business", "Garage", "Residence", "Phone", "Vehicle",
-      "Account", "Employee", "Department"
+      "Account", "Employee", "Department", "PenalCode"
     RESTART IDENTITY CASCADE
   `);
+
+  console.log('Creating penal code reference list...');
+  const penalCodeSeed = [
+    ['112', 'Illegal Parking', 'Infraction', 150],
+    ['118', 'Failure to Signal', 'Infraction', 100],
+    ['205', 'Reckless Driving', 'Misdemeanor', 500],
+    ['240', 'Assault', 'Misdemeanor', 750],
+    ['330', 'Disorderly Conduct', 'Misdemeanor', 300],
+    ['401', 'Grand Theft Auto', 'Felony', 0],
+    ['410', 'Speeding', 'Infraction', 250],
+    ['415', 'Unlicensed Operation of a Vehicle', 'Misdemeanor', 400],
+    ['508', 'Evading Police', 'Felony', 0],
+    ['512', 'Resisting Arrest (Without Violence)', 'Misdemeanor', 600],
+    ['602', 'Trespassing', 'Infraction', 200],
+  ];
+  const penalCodes = {};
+  for (const [code, title, cls, fine] of penalCodeSeed) {
+    const row = (
+      await pool.query(
+        'INSERT INTO "PenalCode" ("code","title","class","fineAmount") VALUES ($1,$2,$3,$4) RETURNING *',
+        [code, title, cls, fine]
+      )
+    ).rows[0];
+    penalCodes[code] = row;
+  }
 
   console.log('Creating department...');
   const dept = (
@@ -121,27 +146,51 @@ async function main() {
     ['TRN003', 'FICTVIN0000000003', 'Mule 4x4', 'Grey - Matte', 'Off-Road', true, true, new Date('2025-11-04T10:00:00'), true, tyrell.id]
   );
 
-  console.log('Creating citations, infractions, warrants, wanted entry...');
+  console.log('Creating infraction reports, citations, warrants, wanted entry...');
+
+  const speedingReport = (
+    await pool.query(
+      `INSERT INTO "Infraction"
+         ("personId","type","remark","status","timestamp","location","confidentialLevel","narrative","reportedBy")
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [
+        jordan.id,
+        'Infraction Report',
+        `${penalCodes['410'].code} — ${penalCodes['410'].title}`,
+        'Closed',
+        new Date('2026-01-22T09:44:00'),
+        'Innocence Boulevard, Downtown Training City',
+        'Public',
+        'Observed the registered vehicle traveling well above the posted limit on Innocence Boulevard. ' +
+          'Subject was pulled over without incident and identified via driving license. Subject was cooperative ' +
+          'throughout the stop and admitted to being late for an appointment. Citation issued on scene.',
+        'Priya Anand',
+      ]
+    )
+  ).rows[0];
   await pool.query(
-    'INSERT INTO "Citation" ("personId","issuedById","amount","reason","status","timestamp") VALUES ($1,$2,$3,$4,$5,$6)',
-    [jordan.id, priya.id, 2500, '410. Speeding (I)', 'Paid', new Date('2026-01-22T09:40:00')]
+    'INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount") VALUES ($1,$2,$3,$4)',
+    [speedingReport.id, penalCodes['410'].id, `${penalCodes['410'].code} — ${penalCodes['410'].title}`, penalCodes['410'].fineAmount]
+  );
+
+  await pool.query(
+    `INSERT INTO "Citation"
+       ("personId","issuedById","amount","reason","status","timestamp","vehiclePlate","streetName","infractionId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+    [
+      jordan.id, priya.id, 2500, '410. Speeding (I)', 'Paid', new Date('2026-01-22T09:40:00'),
+      'TRN001', 'Innocence Boulevard', speedingReport.id,
+    ]
   );
   await pool.query(
-    'INSERT INTO "Citation" ("personId","issuedById","amount","reason","status","timestamp") VALUES ($1,$2,$3,$4,$5,$6)',
-    [jordan.id, priya.id, 750, '112. Illegal Parking', 'Unpaid', new Date('2026-06-02T14:05:00')]
+    'INSERT INTO "Citation" ("personId","issuedById","amount","reason","status","timestamp","vehiclePlate") VALUES ($1,$2,$3,$4,$5,$6,$7)',
+    [jordan.id, priya.id, 750, '112. Illegal Parking', 'Unpaid', new Date('2026-06-02T14:05:00'), 'TRN001']
   );
 
   await pool.query('INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5)', [
     jordan.id,
     'Infraction',
     'IC 410. Speeding',
-    'Closed',
-    new Date('2026-01-22T09:44:00'),
-  ]);
-  await pool.query('INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5)', [
-    jordan.id,
-    'Infraction Report',
-    'Infraction Report for prior speeding citation',
     'Closed',
     new Date('2026-01-22T09:44:00'),
   ]);

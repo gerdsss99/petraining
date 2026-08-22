@@ -1,0 +1,95 @@
+<%- include('../partials/top') %>
+
+<div class="panel">
+  <div class="panel-header">
+    <span class="collapse-dot">&minus;</span> Create Infraction Report &mdash;
+    <a href="/person/<%= person.id %>"><%= person.firstName %> <%= person.lastName %></a>
+  </div>
+  <div class="panel-body">
+    <% if (error) { %>
+      <div class="search-error">&#9888; <%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/person/<%= person.id %>/infractions">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" name="location" placeholder="e.g. Innocence Boulevard, Downtown">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status">
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Confidential Level</label>
+          <select name="confidentialLevel">
+            <option value="Public">Public</option>
+            <option value="Restricted">Restricted</option>
+            <option value="Confidential">Confidential</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="infraction-codes-block">
+        <div class="infraction-codes-header">
+          <label>Infractions</label>
+          <button type="button" class="btn btn-sm btn-outline" id="addInfractionRow">+ Infraction</button>
+        </div>
+        <p class="text-muted" style="margin:2px 0 8px;">
+          Paste or type a penal code (e.g. <strong>410</strong>) from the reports site — it will be matched
+          against the local penal code list and attached to this report.
+        </p>
+        <datalist id="penal-code-options">
+          <% penalCodes.forEach(function(pc){ %>
+            <option value="<%= pc.code %>"><%= pc.code %> — <%= pc.title %> (<%= pc.class %>, $<%= pc.fineAmount %>)</option>
+          <% }); %>
+        </datalist>
+        <div id="infractionCodeRows">
+          <div class="infraction-code-row">
+            <input type="text" name="penalCode" list="penal-code-options" placeholder="Penal code, e.g. 410" class="code-input">
+            <button type="button" class="btn btn-sm btn-danger row-remove" title="Remove">&times;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Narrative</label>
+        <textarea name="narrative" rows="8" placeholder="Describe what happened, in-character, in as much detail as needed..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Evidence Image URLs (optional, one per line)</label>
+        <textarea name="evidenceUrls" rows="3" placeholder="https://example.com/evidence1.jpg"></textarea>
+      </div>
+
+      <button type="submit" class="btn">Submit Report</button>
+      <a class="btn btn-outline" href="/person/<%= person.id %>">Cancel</a>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('addInfractionRow').addEventListener('click', function () {
+    var rows = document.getElementById('infractionCodeRows');
+    var row = document.createElement('div');
+    row.className = 'infraction-code-row';
+    row.innerHTML =
+      '<input type="text" name="penalCode" list="penal-code-options" placeholder="Penal code, e.g. 410" class="code-input">' +
+      '<button type="button" class="btn btn-sm btn-danger row-remove" title="Remove">&times;</button>';
+    rows.appendChild(row);
+  });
+
+  document.getElementById('infractionCodeRows').addEventListener('click', function (e) {
+    if (e.target.classList.contains('row-remove')) {
+      var rows = document.getElementById('infractionCodeRows');
+      if (rows.children.length > 1) {
+        e.target.closest('.infraction-code-row').remove();
+      }
+    }
+  });
+</script>
+
+<%- include('../partials/bottom') %>
