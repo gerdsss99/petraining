@@ -1,7 +1,7 @@
 <%- include('../partials/top') %>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= person ? 'Edit Profile' : 'New Profile' %></div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= person ? 'Edit Training Profile' : 'New Training Profile' %></div>
   <div class="panel-body">
     <form method="POST" action="<%= person ? ('/admin/people/' + person.id + '?_method=PUT') : '/admin/people' %>">
       <div class="form-grid">
@@ -38,7 +38,7 @@
         </div>
         <div class="form-group checkbox">
           <input type="checkbox" name="isPersonnel" id="isPersonnel" <%= person && person.isPersonnel ? 'checked' : '' %>>
-          <label for="isPersonnel" style="margin:0;">Counts as Department Personnel (dashboard stat)</label>
+          <label for="isPersonnel" style="margin:0;">This is department personnel/staff (leave unchecked for a training civilian)</label>
         </div>
       </div>
       <button type="submit" class="btn"><%= person ? 'Save Changes' : 'Create Profile' %></button>

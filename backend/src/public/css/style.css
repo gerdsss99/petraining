@@ -331,6 +331,120 @@ a.action-icon, a.action-icon:hover { text-decoration: none; }
   .infraction-meta-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* Modal-look overlay used by the infraction report / citation / view-record
+   pages — a full-page form styled to sit on top of a dimmed background, to
+   match the reference MDC's modal dialogs without needing a JS modal
+   framework. */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 24, 32, .55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  z-index: 50;
+  overflow-y: auto;
+}
+.modal-card {
+  background: #fff;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 1100px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  display: flex;
+  flex-direction: column;
+}
+.modal-card.modal-card-narrow { max-width: 640px; }
+.modal-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 600;
+}
+.modal-close {
+  color: var(--danger);
+  font-size: 20px;
+  text-decoration: none;
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+.modal-card-body { padding: 24px; max-height: 74vh; overflow-y: auto; }
+.modal-card-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Pill-style Location / Status / Confidential Level controls */
+.pill-row { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
+.pill-field { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pill-field > label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.pill-select-wrap { position: relative; }
+.pill-select-wrap::after {
+  content: '\25BE';
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  color: #fff; font-size: 11px; pointer-events: none;
+}
+select.pill-select, input.pill-input, button.pill-btn {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  border: none; border-radius: 6px;
+  padding: 11px 34px 11px 20px;
+  font-weight: 700; font-size: 12px; letter-spacing: .03em; text-transform: uppercase;
+  color: #fff; cursor: pointer; min-width: 170px; text-align: center;
+}
+input.pill-input { padding: 11px 16px; text-transform: none; letter-spacing: normal; font-weight: 600; text-align: left; }
+input.pill-input::placeholder { color: rgba(255,255,255,.8); }
+button.pill-btn { padding: 11px 20px; min-width: 0; }
+.pill-teal { background: #17a2b8; }
+.pill-orange { background: #f0a80b; }
+.pill-red { background: #e5484d; }
+.pill-green { background: #2f9e44; }
+
+/* Infractions (penal code) section */
+.infractions-section { text-align: center; margin-bottom: 22px; }
+.infractions-section > label { font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 10px; }
+.infractions-buttons { display: flex; gap: 10px; justify-content: center; margin-bottom: 4px; }
+.infraction-code-rows { display: none; flex-direction: column; gap: 8px; max-width: 520px; margin: 14px auto 0; text-align: left; }
+.infraction-code-rows.show { display: flex; }
+.infraction-code-row { display: flex; gap: 8px; }
+.infraction-code-row input { flex: 1; }
+
+/* Narrative editor */
+.narrative-block { border-top: 1px solid var(--border); padding-top: 18px; }
+.narrative-block > label { font-size: 12px; color: var(--text-muted); font-weight: 600; display: block; text-align: center; margin-bottom: 10px; }
+.narrative-toolbar { display: flex; gap: 4px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap; }
+.narrative-toolbar button {
+  min-width: 30px; height: 28px;
+  border: none; background: #6c7280; color: #fff;
+  border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 700; padding: 0 6px;
+}
+.narrative-toolbar button:hover { background: #565b68; }
+textarea.narrative-source {
+  width: 100%; min-height: 220px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px; line-height: 1.5; padding: 14px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: #fafbfc; resize: vertical;
+}
+.narrative-preview {
+  margin-top: 12px; border: 1px dashed var(--border); border-radius: 6px; padding: 14px;
+  font-size: 13px; line-height: 1.5; background: #fff;
+}
+.narrative-preview img { max-width: 100%; border-radius: 4px; }
+.detect-badge {
+  display: inline-block; margin-top: 10px; font-size: 11.5px; color: var(--text-muted);
+  background: #f0f2f5; border-radius: 4px; padding: 4px 10px;
+}
+.detect-badge strong { color: var(--text); }
+
 /* Profile header */
 .profile-header {
   background: var(--card-bg);

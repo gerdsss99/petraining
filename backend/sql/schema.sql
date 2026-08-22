@@ -98,6 +98,12 @@ CREATE TABLE IF NOT EXISTS "InfractionCode" (
   "fineAmount" INTEGER NOT NULL DEFAULT 0
 );
 
+-- The specific citation reason text pasted alongside this code (from the
+-- report's "Citation Reason(s):" list), separate from the penal code's own
+-- title — e.g. code "IC 418 — Prohibited Parking" with reason "Against a
+-- red curb (except where permitted)."
+ALTER TABLE "InfractionCode" ADD COLUMN IF NOT EXISTS "reasonText" TEXT;
+
 -- Added for the citation-issuing workflow. A citation can optionally be tied
 -- back to the infraction report it came from, and carries a free-text plate
 -- / street snapshot rather than a hard vehicle FK, since the officer may

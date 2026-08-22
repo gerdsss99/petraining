@@ -4,6 +4,7 @@ require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const pool = require('../src/lib/db');
 const migrate = require('../src/lib/migrate');
+const { parseInfractionNarrative } = require('../src/lib/narrativeParser');
 
 async function main() {
   console.log('Ensuring schema exists...');
@@ -28,6 +29,7 @@ async function main() {
     ['401', 'Grand Theft Auto', 'Felony', 0],
     ['410', 'Speeding', 'Infraction', 250],
     ['415', 'Unlicensed Operation of a Vehicle', 'Misdemeanor', 400],
+    ['418', 'Prohibited Parking: Third or more Offense', 'Infraction', 5000],
     ['508', 'Evading Police', 'Felony', 0],
     ['512', 'Resisting Arrest (Without Violence)', 'Misdemeanor', 600],
     ['602', 'Trespassing', 'Infraction', 200],
@@ -148,6 +150,22 @@ async function main() {
 
   console.log('Creating infraction reports, citations, warrants, wanted entry...');
 
+  // Built the same way a real staff member would — by pasting a report from
+  // the "reports website" straight into the Narrative field. Running it
+  // through the real parser here doubles as a smoke test for it.
+  const speedingNarrativeRaw = `<strong>Priya Anand</strong> (<strong>#100002</strong>), on the <strong>22/Jan/2026</strong>, <strong>09:44</strong>.<br>Observed a <strong>Sabre GT</strong>, identification plate reading <strong>TRN001</strong>, registered to <strong>Jordan Kessler</strong>, traveling well above the posted limit on <strong>Innocence Boulevard</strong>, <strong>Training City</strong>.
+<br>
+<br>
+<strong>Citation(s):</strong>
+<ul>
+<li><strong>IC 410</strong> — Speeding ($2500)</li>
+</ul>
+<strong>Citation Reason(s):</strong>
+<ul>
+<li>Clocked at 30 over the posted limit via radar.</li>
+</ul>`;
+  const speedingParsed = parseInfractionNarrative(speedingNarrativeRaw);
+
   const speedingReport = (
     await pool.query(
       `INSERT INTO "Infraction"
@@ -156,35 +174,36 @@ async function main() {
       [
         jordan.id,
         'Infraction Report',
-        `${penalCodes['410'].code} — ${penalCodes['410'].title}`,
+        speedingParsed.codes.map((c) => c.codeLabel).join('; '),
         'Closed',
         new Date('2026-01-22T09:44:00'),
         'Innocence Boulevard, Downtown Training City',
         'Public',
-        'Observed the registered vehicle traveling well above the posted limit on Innocence Boulevard. ' +
-          'Subject was pulled over without incident and identified via driving license. Subject was cooperative ' +
-          'throughout the stop and admitted to being late for an appointment. Citation issued on scene.',
+        speedingParsed.displayNarrative,
         'Priya Anand',
       ]
     )
   ).rows[0];
-  await pool.query(
-    'INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount") VALUES ($1,$2,$3,$4)',
-    [speedingReport.id, penalCodes['410'].id, `${penalCodes['410'].code} — ${penalCodes['410'].title}`, penalCodes['410'].fineAmount]
-  );
+  for (const c of speedingParsed.codes) {
+    const penalCodeId = c.rawCode && penalCodes[c.rawCode] ? penalCodes[c.rawCode].id : null;
+    await pool.query(
+      'INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount","reasonText") VALUES ($1,$2,$3,$4,$5)',
+      [speedingReport.id, penalCodeId, c.codeLabel, c.fineAmount, c.reasonText]
+    );
+  }
 
   await pool.query(
     `INSERT INTO "Citation"
        ("personId","issuedById","amount","reason","status","timestamp","vehiclePlate","streetName","infractionId")
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
     [
-      jordan.id, priya.id, 2500, '410. Speeding (I)', 'Paid', new Date('2026-01-22T09:40:00'),
+      jordan.id, priya.id, 2500, 'IC 410 — Speeding', 'Paid', new Date('2026-01-22T09:40:00'),
       'TRN001', 'Innocence Boulevard', speedingReport.id,
     ]
   );
   await pool.query(
     'INSERT INTO "Citation" ("personId","issuedById","amount","reason","status","timestamp","vehiclePlate") VALUES ($1,$2,$3,$4,$5,$6,$7)',
-    [jordan.id, priya.id, 750, '112. Illegal Parking', 'Unpaid', new Date('2026-06-02T14:05:00'), 'TRN001']
+    [jordan.id, priya.id, 750, 'IC 112 — Illegal Parking', 'Unpaid', new Date('2026-06-02T14:05:00'), 'TRN001']
   );
 
   await pool.query('INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5)', [

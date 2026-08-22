@@ -177,7 +177,10 @@ async function listPenalCodes() {
 // like "410 - Speeding (I)" — we try an exact match on the whole string
 // first, then fall back to matching the leading token.
 async function findPenalCodeByCode(raw) {
-  const value = (raw || '').trim();
+  // Staff may paste/type "410", "IC 410", or "410 - Speeding (I)" — strip a
+  // leading "IC" and try the whole string, then fall back to the leading
+  // token.
+  const value = (raw || '').trim().replace(/^ic\s*/i, '');
   if (!value) return null;
   const exact = await one('SELECT * FROM "PenalCode" WHERE LOWER("code") = LOWER($1)', [value]);
   if (exact) return exact;
@@ -210,8 +213,8 @@ async function createInfractionReport(data) {
 
   for (const c of data.codes) {
     await pool.query(
-      `INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount") VALUES ($1,$2,$3,$4)`,
-      [infraction.id, c.penalCodeId || null, c.codeLabel, c.fineAmount || 0]
+      `INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount","reasonText") VALUES ($1,$2,$3,$4,$5)`,
+      [infraction.id, c.penalCodeId || null, c.codeLabel, c.fineAmount || 0, c.reasonText || null]
     );
   }
 

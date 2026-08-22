@@ -1,6 +1,7 @@
 const express = require('express');
 const models = require('../lib/models');
 const { requireAuth } = require('../middleware/auth');
+const { parseInfractionNarrative } = require('../lib/narrativeParser');
 
 const router = express.Router();
 
@@ -71,27 +72,49 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
       return res.status(404).render('error', { title: 'Not Found', message: 'No profile with that ID.' });
     }
 
-    const { location, status, confidentialLevel, narrative, evidenceUrls } = req.body;
-    const rawCodes = [].concat(req.body.penalCode || []).map((c) => (c || '').trim()).filter(Boolean);
+    const { location, status, confidentialLevel, narrative } = req.body;
 
-    if (!rawCodes.length) {
+    if (!narrative || !narrative.trim()) {
       const penalCodes = await models.listPenalCodes();
       return res.render('person/infraction-new', {
         title: 'Create Infraction Report',
         person,
         penalCodes,
-        error: 'Attach at least one penal code before submitting the report.',
+        error: 'A narrative is required.',
       });
     }
 
-    const codes = [];
-    for (const raw of rawCodes) {
+    // Pasting the report from the reports site does the real work here —
+    // it reads the "Citation(s):"/"Citation Reason(s):" lists for penal
+    // codes + fines + reasons, and the <img> tags for evidence photos.
+    const parsed = parseInfractionNarrative(narrative);
+    for (const c of parsed.codes) {
+      if (!c.rawCode) continue;
+      const match = await models.findPenalCodeByCode(c.rawCode);
+      if (match) c.penalCodeId = match.id;
+    }
+
+    // Rows added manually via the PENAL CODE / + INFRACTION buttons (for
+    // reports that don't come pre-formatted) get resolved the same way.
+    const manualRaw = [].concat(req.body.penalCode || []).map((c) => (c || '').trim()).filter(Boolean);
+    const manualCodes = [];
+    for (const raw of manualRaw) {
       const match = await models.findPenalCodeByCode(raw);
       if (match) {
-        codes.push({ penalCodeId: match.id, codeLabel: `${match.code} — ${match.title}`, fineAmount: match.fineAmount });
+        manualCodes.push({ rawCode: match.code, penalCodeId: match.id, codeLabel: `IC ${match.code} — ${match.title}`, fineAmount: match.fineAmount, reasonText: null });
       } else {
-        codes.push({ penalCodeId: null, codeLabel: raw, fineAmount: 0 });
+        manualCodes.push({ rawCode: null, penalCodeId: null, codeLabel: raw, fineAmount: 0, reasonText: null });
       }
+    }
+
+    // Merge, de-duplicating anything the paste already picked up.
+    const seen = new Set();
+    const codes = [];
+    for (const c of [...parsed.codes, ...manualCodes]) {
+      const key = c.rawCode ? `code:${c.rawCode}` : `label:${c.codeLabel}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      codes.push(c);
     }
 
     const reportedBy = req.currentUser && req.currentUser.employee
@@ -100,13 +123,13 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
 
     const infraction = await models.createInfractionReport({
       personId: id,
-      remark: codes.map((c) => c.codeLabel).join('; '),
-      status: status === 'Closed' ? 'Closed' : 'Open',
+      remark: codes.length ? codes.map((c) => c.codeLabel).join('; ') : 'Infraction Report',
+      status: status === 'Open' ? 'Open' : 'Closed',
       location,
-      confidentialLevel: confidentialLevel || 'Public',
-      narrative,
+      confidentialLevel: confidentialLevel || 'Generic',
+      narrative: parsed.displayNarrative,
       reportedBy,
-      evidenceUrls,
+      evidenceUrls: parsed.images.join('\n'),
       codes,
     });
 

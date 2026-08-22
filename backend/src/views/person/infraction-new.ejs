@@ -1,95 +1,174 @@
 <%- include('../partials/top') %>
 
-<div class="panel">
-  <div class="panel-header">
-    <span class="collapse-dot">&minus;</span> Create Infraction Report &mdash;
-    <a href="/person/<%= person.id %>"><%= person.firstName %> <%= person.lastName %></a>
-  </div>
-  <div class="panel-body">
-    <% if (error) { %>
-      <div class="search-error">&#9888; <%= error %></div>
-    <% } %>
+<div class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-card-header">
+      Add Infraction Report
+      <a href="/person/<%= person.id %>" class="modal-close" title="Close">&times;</a>
+    </div>
+    <div class="modal-card-body">
+      <% if (error) { %><div class="search-error">&#9888; <%= error %></div><% } %>
 
-    <form method="POST" action="/person/<%= person.id %>/infractions">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Location</label>
-          <input type="text" name="location" placeholder="e.g. Innocence Boulevard, Downtown">
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select name="status">
-            <option value="Open">Open</option>
-            <option value="Closed">Closed</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Confidential Level</label>
-          <select name="confidentialLevel">
-            <option value="Public">Public</option>
-            <option value="Restricted">Restricted</option>
-            <option value="Confidential">Confidential</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="infraction-codes-block">
-        <div class="infraction-codes-header">
-          <label>Infractions</label>
-          <button type="button" class="btn btn-sm btn-outline" id="addInfractionRow">+ Infraction</button>
-        </div>
-        <p class="text-muted" style="margin:2px 0 8px;">
-          Paste or type a penal code (e.g. <strong>410</strong>) from the reports site — it will be matched
-          against the local penal code list and attached to this report.
-        </p>
-        <datalist id="penal-code-options">
-          <% penalCodes.forEach(function(pc){ %>
-            <option value="<%= pc.code %>"><%= pc.code %> — <%= pc.title %> (<%= pc.class %>, $<%= pc.fineAmount %>)</option>
-          <% }); %>
-        </datalist>
-        <div id="infractionCodeRows">
-          <div class="infraction-code-row">
-            <input type="text" name="penalCode" list="penal-code-options" placeholder="Penal code, e.g. 410" class="code-input">
-            <button type="button" class="btn btn-sm btn-danger row-remove" title="Remove">&times;</button>
+      <form method="POST" action="/person/<%= person.id %>/infractions" id="infractionForm">
+        <div class="pill-row">
+          <div class="pill-field">
+            <label>Location</label>
+            <input class="pill-input pill-teal" type="text" name="location" placeholder="Select location">
+          </div>
+          <div class="pill-field">
+            <label>Status</label>
+            <div class="pill-select-wrap">
+              <select class="pill-select pill-orange" name="status">
+                <option value="Open" selected>Open</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+          </div>
+          <div class="pill-field">
+            <label>Confidential Level</label>
+            <div class="pill-select-wrap">
+              <select class="pill-select pill-red" name="confidentialLevel">
+                <option value="Generic" selected>Generic</option>
+                <option value="Public">Public</option>
+                <option value="Restricted">Restricted</option>
+                <option value="Confidential">Confidential</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label>Narrative</label>
-        <textarea name="narrative" rows="8" placeholder="Describe what happened, in-character, in as much detail as needed..."></textarea>
-      </div>
+        <div class="infractions-section">
+          <label>Infractions</label>
+          <div class="infractions-buttons">
+            <button type="button" class="pill-btn pill-teal" id="btnPenalCode">&#128295; PENAL CODE</button>
+            <button type="button" class="pill-btn pill-green" id="btnAddInfraction">&#10010; INFRACTION</button>
+          </div>
+          <datalist id="penal-code-options">
+            <% penalCodes.forEach(function(pc){ %>
+              <option value="IC <%= pc.code %>">IC <%= pc.code %> — <%= pc.title %> ($<%= pc.fineAmount %>)</option>
+            <% }); %>
+          </datalist>
+          <div class="infraction-code-rows" id="infractionCodeRows"></div>
+          <p class="text-muted" style="font-size:12px;margin:10px 0 0;">
+            Or just paste the whole report into the narrative below — penal codes, fines, and evidence photos in
+            it are read automatically.
+          </p>
+        </div>
 
-      <div class="form-group">
-        <label>Evidence Image URLs (optional, one per line)</label>
-        <textarea name="evidenceUrls" rows="3" placeholder="https://example.com/evidence1.jpg"></textarea>
-      </div>
-
-      <button type="submit" class="btn">Submit Report</button>
+        <div class="narrative-block">
+          <label>Narrative</label>
+          <div class="narrative-toolbar">
+            <button type="button" data-wrap="strong" title="Bold"><strong>B</strong></button>
+            <button type="button" data-wrap="u" title="Underline"><u>U</u></button>
+            <button type="button" data-wrap="em" title="Italic"><em>I</em></button>
+            <button type="button" data-block="ul" title="Bulleted list">&#8226; List</button>
+            <button type="button" data-block="ol" title="Numbered list">1. List</button>
+            <button type="button" data-wrap='a href=""' title="Link">&#128279;</button>
+            <button type="button" data-insert="img" title="Insert image">&#128247; Image</button>
+            <button type="button" id="btnPreviewToggle" title="Toggle rendered preview">Preview</button>
+          </div>
+          <textarea class="narrative-source" name="narrative" id="narrativeInput" required
+            placeholder="Paste the report from the reports site here, or write one in plain text / HTML..."></textarea>
+          <div class="narrative-preview" id="narrativePreview" style="display:none;"></div>
+          <div class="detect-badge" id="detectBadge">
+            Detected: <strong>0</strong> penal code(s), <strong>0</strong> evidence image(s)
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-card-footer">
       <a class="btn btn-outline" href="/person/<%= person.id %>">Cancel</a>
-    </form>
+      <button type="submit" form="infractionForm" class="btn">&#10010; Submit</button>
+    </div>
   </div>
 </div>
 
 <script>
-  document.getElementById('addInfractionRow').addEventListener('click', function () {
-    var rows = document.getElementById('infractionCodeRows');
+(function () {
+  var rowsContainer = document.getElementById('infractionCodeRows');
+
+  function addRow() {
+    rowsContainer.classList.add('show');
     var row = document.createElement('div');
     row.className = 'infraction-code-row';
     row.innerHTML =
-      '<input type="text" name="penalCode" list="penal-code-options" placeholder="Penal code, e.g. 410" class="code-input">' +
+      '<input type="text" name="penalCode" list="penal-code-options" placeholder="Penal code, e.g. IC 410" class="code-input">' +
       '<button type="button" class="btn btn-sm btn-danger row-remove" title="Remove">&times;</button>';
-    rows.appendChild(row);
-  });
+    rowsContainer.appendChild(row);
+  }
 
-  document.getElementById('infractionCodeRows').addEventListener('click', function (e) {
+  document.getElementById('btnPenalCode').addEventListener('click', function () {
+    if (!rowsContainer.children.length) addRow();
+    rowsContainer.classList.add('show');
+  });
+  document.getElementById('btnAddInfraction').addEventListener('click', addRow);
+  rowsContainer.addEventListener('click', function (e) {
     if (e.target.classList.contains('row-remove')) {
-      var rows = document.getElementById('infractionCodeRows');
-      if (rows.children.length > 1) {
-        e.target.closest('.infraction-code-row').remove();
-      }
+      e.target.closest('.infraction-code-row').remove();
     }
   });
+
+  // Toolbar: wrap/insert simple HTML around the current textarea selection.
+  var narrative = document.getElementById('narrativeInput');
+
+  document.querySelectorAll('.narrative-toolbar button[data-wrap]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var tag = btn.getAttribute('data-wrap');
+      var openTag = '<' + tag + '>';
+      var closeTag = '</' + tag.split(' ')[0] + '>';
+      var start = narrative.selectionStart, end = narrative.selectionEnd;
+      var val = narrative.value;
+      narrative.value = val.slice(0, start) + openTag + val.slice(start, end) + closeTag + val.slice(end);
+      narrative.focus();
+      updateDetected();
+    });
+  });
+
+  document.querySelectorAll('.narrative-toolbar button[data-block]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var kind = btn.getAttribute('data-block');
+      var snippet = kind === 'ul' ? '\n<ul>\n<li>Item</li>\n</ul>\n' : '\n<ol>\n<li>Item</li>\n</ol>\n';
+      var start = narrative.selectionStart;
+      narrative.value = narrative.value.slice(0, start) + snippet + narrative.value.slice(start);
+      narrative.focus();
+      updateDetected();
+    });
+  });
+
+  document.querySelectorAll('.narrative-toolbar button[data-insert="img"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = prompt('Image URL:');
+      if (!url) return;
+      var start = narrative.selectionStart;
+      var snippet = '<img src="' + url + '" alt="Evidence Image">';
+      narrative.value = narrative.value.slice(0, start) + snippet + narrative.value.slice(start);
+      narrative.focus();
+      updateDetected();
+    });
+  });
+
+  var preview = document.getElementById('narrativePreview');
+  document.getElementById('btnPreviewToggle').addEventListener('click', function () {
+    if (preview.style.display === 'none') {
+      preview.innerHTML = narrative.value;
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  });
+
+  function updateDetected() {
+    var html = narrative.value;
+    var codeMatches = html.match(/IC\s*\d{2,4}[^—-]*[—-]\s*[^($<]+\(\$[\d,]+\)/gi) || [];
+    var imgMatches = html.match(/<img[^>]+src=/gi) || [];
+    var strongs = document.querySelectorAll('#detectBadge strong');
+    strongs[0].textContent = codeMatches.length;
+    strongs[1].textContent = imgMatches.length;
+    if (preview.style.display !== 'none') preview.innerHTML = html;
+  }
+  narrative.addEventListener('input', updateDetected);
+  narrative.addEventListener('paste', function () { setTimeout(updateDetected, 30); });
+})();
 </script>
 
 <%- include('../partials/bottom') %>

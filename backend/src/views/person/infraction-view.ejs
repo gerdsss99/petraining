@@ -1,68 +1,72 @@
 <%- include('../partials/top') %>
 
-<div class="panel">
-  <div class="panel-header">
-    <span class="collapse-dot">&minus;</span> Infraction Report #<%= infraction.id %> &mdash;
-    <a href="/person/<%= infraction.personId %>"><%= infraction.personFirstName %> <%= infraction.personLastName %></a>
-  </div>
-  <div class="panel-body">
-    <div class="infraction-meta-grid">
-      <div><span class="text-muted">Status</span><br><span class="status-pill <%= infraction.status.toLowerCase() %>"><%= infraction.status %></span></div>
-      <div><span class="text-muted">Confidential Level</span><br><%= infraction.confidentialLevel %></div>
-      <div><span class="text-muted">Location</span><br><%= infraction.location || '—' %></div>
-      <div><span class="text-muted">Reported By</span><br><%= infraction.reportedBy || '—' %></div>
-      <div><span class="text-muted">Timestamp</span><br><%= infraction.timestamp.toLocaleString() %></div>
+<div class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-card-header">
+      Infraction Report #<%= infraction.id %> &mdash;
+      <a href="/person/<%= infraction.personId %>"><%= infraction.personFirstName %> <%= infraction.personLastName %></a>
+      <a href="/person/<%= infraction.personId %>" class="modal-close" title="Close">&times;</a>
     </div>
-
-    <h4 class="section-subhead">Attached Penal Codes</h4>
-    <% if (!infraction.codes.length) { %>
-      <div class="panel-body empty" style="padding:0 0 12px;">No penal codes attached.</div>
-    <% } else { %>
-      <table class="data-table" style="margin-bottom:14px;">
-        <thead><tr><th>Code</th><th>Suggested Fine</th></tr></thead>
-        <tbody>
-          <% infraction.codes.forEach(function(c){ %>
-            <tr><td><%= c.codeLabel %></td><td><%= c.fineAmount ? ('$' + c.fineAmount.toLocaleString()) : '—' %></td></tr>
-          <% }); %>
-        </tbody>
-      </table>
-    <% } %>
-
-    <h4 class="section-subhead">Narrative</h4>
-    <div class="narrative-box"><%= infraction.narrative || 'No narrative provided.' %></div>
-
-    <h4 class="section-subhead">Evidence</h4>
-    <% if (!infraction.evidenceList.length) { %>
-      <div class="panel-body empty" style="padding:0 0 12px;">No evidence uploaded.</div>
-    <% } else { %>
-      <div class="evidence-gallery">
-        <% infraction.evidenceList.forEach(function(url){ %>
-          <a href="<%= url %>" target="_blank" rel="noopener"><img src="<%= url %>" alt="Evidence" onerror="this.style.display='none'"></a>
-        <% }); %>
+    <div class="modal-card-body">
+      <div class="infraction-meta-grid">
+        <div><span class="text-muted">Status</span><br><span class="status-pill <%= infraction.status.toLowerCase() %>"><%= infraction.status %></span></div>
+        <div><span class="text-muted">Confidential Level</span><br><%= infraction.confidentialLevel %></div>
+        <div><span class="text-muted">Location</span><br><%= infraction.location || '—' %></div>
+        <div><span class="text-muted">Reported By</span><br><%= infraction.reportedBy || '—' %></div>
+        <div><span class="text-muted">Timestamp</span><br><%= infraction.timestamp.toLocaleString() %></div>
       </div>
-    <% } %>
 
-    <h4 class="section-subhead">Attached Citations</h4>
-    <% if (!infraction.citations.length) { %>
-      <div class="panel-body empty" style="padding:0 0 12px;">No citations issued from this report yet.</div>
-    <% } else { %>
-      <table class="data-table" style="margin-bottom:14px;">
-        <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Plate</th><th>Street</th><th>Status</th><th>Issued By</th></tr></thead>
-        <tbody>
-          <% infraction.citations.forEach(function(c){ %>
-            <tr>
-              <td>#<%= c.id %></td><td><%= c.timestamp.toDateString() %></td><td>$<%= c.amount.toLocaleString() %></td>
-              <td><%= c.reason %></td><td><%= c.vehiclePlate || '—' %></td><td><%= c.streetName || '—' %></td>
-              <td><span class="status-pill <%= c.status.toLowerCase() %>"><%= c.status %></span></td>
-              <td><%= c.issuedByFirstName ? c.issuedByFirstName + ' ' + c.issuedByLastName : '—' %></td>
-            </tr>
+      <h4 class="section-subhead">Citation(s)</h4>
+      <% if (!infraction.codes.length) { %>
+        <div class="panel-body empty" style="padding:0 0 12px;">No penal codes attached.</div>
+      <% } else { %>
+        <table class="data-table" style="margin-bottom:14px;">
+          <thead><tr><th>Code</th><th>Reason</th><th>Suggested Fine</th></tr></thead>
+          <tbody>
+            <% infraction.codes.forEach(function(c){ %>
+              <tr><td><%= c.codeLabel %></td><td><%= c.reasonText || '—' %></td><td><%= c.fineAmount ? ('$' + c.fineAmount.toLocaleString()) : '—' %></td></tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+
+      <h4 class="section-subhead">Narrative</h4>
+      <div class="narrative-box"><%- infraction.narrative || 'No narrative provided.' %></div>
+
+      <h4 class="section-subhead">Evidence</h4>
+      <% if (!infraction.evidenceList.length) { %>
+        <div class="panel-body empty" style="padding:0 0 12px;">No evidence uploaded.</div>
+      <% } else { %>
+        <div class="evidence-gallery">
+          <% infraction.evidenceList.forEach(function(url){ %>
+            <a href="<%= url %>" target="_blank" rel="noopener"><img src="<%= url %>" alt="Evidence" onerror="this.style.display='none'"></a>
           <% }); %>
-        </tbody>
-      </table>
-    <% } %>
+        </div>
+      <% } %>
 
-    <a class="btn" href="/person/<%= infraction.personId %>/citations/new?infractionId=<%= infraction.id %>">Issue Citation</a>
-    <a class="btn btn-outline" href="/person/<%= infraction.personId %>">Back to Profile</a>
+      <h4 class="section-subhead">Attached Citations</h4>
+      <% if (!infraction.citations.length) { %>
+        <div class="panel-body empty" style="padding:0 0 12px;">No citations issued from this report yet.</div>
+      <% } else { %>
+        <table class="data-table" style="margin-bottom:14px;">
+          <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Plate</th><th>Street</th><th>Status</th><th>Issued By</th></tr></thead>
+          <tbody>
+            <% infraction.citations.forEach(function(c){ %>
+              <tr>
+                <td>#<%= c.id %></td><td><%= c.timestamp.toDateString() %></td><td>$<%= c.amount.toLocaleString() %></td>
+                <td><%= c.reason %></td><td><%= c.vehiclePlate || '—' %></td><td><%= c.streetName || '—' %></td>
+                <td><span class="status-pill <%= c.status.toLowerCase() %>"><%= c.status %></span></td>
+                <td><%= c.issuedByFirstName ? c.issuedByFirstName + ' ' + c.issuedByLastName : '—' %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+    <div class="modal-card-footer">
+      <a class="btn btn-outline" href="/person/<%= infraction.personId %>">Back to Profile</a>
+      <a class="btn" href="/person/<%= infraction.personId %>/citations/new?infractionId=<%= infraction.id %>">Issue Citation</a>
+    </div>
   </div>
 </div>
 
