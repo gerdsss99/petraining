@@ -1,0 +1,16 @@
+<%- include('../partials/top') %>
+
+<div class="search-page">
+  <form class="search-bar" method="GET" action="/dmv">
+    <input type="text" name="q" placeholder="Search by license plate (e.g. TRN001)..." value="<%= q %>" autofocus>
+    <button class="btn" type="submit">Search</button>
+  </form>
+
+  <% if (error) { %>
+    <div class="search-error">&#9888; <%= error %></div>
+  <% } %>
+
+  <p class="text-muted search-hint">Enter an exact license plate to open that vehicle's record.</p>
+</div>
+
+<%- include('../partials/bottom') %>

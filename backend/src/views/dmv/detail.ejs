@@ -1,0 +1,105 @@
+<%- include('../partials/top') %>
+
+<%
+  const COLOR_HEX = {
+    red: '#e5484d', black: '#1f2430', grey: '#8a94a3', gray: '#8a94a3',
+    white: '#f4f5f7', blue: '#2f6fed', green: '#2f9e44', silver: '#c7ccd4',
+    champagne: '#cbb994', gold: '#d4af37', yellow: '#f0d000', orange: '#f0a80b',
+  };
+  function swatchColor(name) {
+    if (!name) return '#c7ccd4';
+    const key = name.split('-')[0].trim().toLowerCase();
+    return COLOR_HEX[key] || '#c7ccd4';
+  }
+%>
+
+<div class="panel vehicle-panel">
+  <div class="vehicle-panel-body">
+    <div class="vehicle-photo-placeholder">
+      <div class="vp-title">Vehicle Photograph</div>
+      <div class="vp-sub">Unavailable</div>
+    </div>
+
+    <div class="vehicle-main">
+      <h2 class="vehicle-title"><%= vehicle.model %></h2>
+
+      <div class="plate-graphic">
+        <span class="plate-tab left"></span>
+        <span class="plate-tab right"></span>
+        <div class="plate-state">State of Training</div>
+        <div class="plate-number"><%= vehicle.plate %></div>
+      </div>
+
+      <div class="vehicle-info-row">
+        <div class="vehicle-info-col">
+          <div class="info-label">&#128100; Registered Owner</div>
+          <a href="/person/<%= vehicle.ownerId %>"><%= vehicle.ownerFirstName %> <%= vehicle.ownerLastName %></a>
+        </div>
+
+        <div class="vehicle-info-col">
+          <div class="info-label">&#128193; Vehicle Class</div>
+          <div>&#128663; <%= vehicle.vehicleClass || 'Unclassified' %></div>
+        </div>
+
+        <div class="vehicle-info-col">
+          <div class="info-label">&#128274; Vehicle Paints</div>
+          <div class="paint-row"><span class="paint-swatch" style="background:<%= swatchColor(vehicle.color) %>"></span> <%= vehicle.color %></div>
+          <% if (vehicle.secondaryColor) { %>
+            <div class="paint-row"><span class="paint-swatch" style="background:<%= swatchColor(vehicle.secondaryColor) %>"></span> <%= vehicle.secondaryColor %></div>
+          <% } %>
+        </div>
+
+        <div class="vehicle-info-col">
+          <div class="info-label">&#9432; Insurance Status</div>
+          <div>
+            <span class="status-pill <%= vehicle.insured ? 'valid' : 'unpaid' %>"><%= vehicle.insured ? 'Insured' : 'Uninsured' %></span>
+          </div>
+          <% if (vehicle.insured && vehicle.insuredSince) { %>
+            <div class="text-muted vehicle-info-sub">Since <%= new Date(vehicle.insuredSince).toDateString() %></div>
+          <% } %>
+
+          <div class="info-label" style="margin-top:14px;">&#128273; Vehicle Lease Status</div>
+          <div><%= vehicle.leased ? 'Leased' : 'No Active Lease' %></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vehicle-incidents">
+    <h3>Related Incidents</h3>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Incident</th><th style="text-align:right;">Status</th></tr></thead>
+      <tbody>
+        <tr><td colspan="3" class="text-center text-muted">No Related Incidents</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&#128203;</span> Outstanding Fines</div>
+  <div class="panel-body empty">No data available in table.</div>
+</div>
+
+<div class="panel">
+  <div class="panel-header"><span class="collapse-dot">&#8635;</span> DMV Records</div>
+  <div class="panel-body">
+    <table class="data-table">
+      <thead><tr><th>Transfer Date</th><th>New Owner</th><th>Old Owner</th><th>Mileage</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><%= new Date(vehicle.createdAt).toLocaleString('en-GB') %></td>
+          <td><a href="/person/<%= vehicle.ownerId %>"><%= vehicle.ownerFirstName %> <%= vehicle.ownerLastName %></a></td>
+          <td>None</td>
+          <td>0 Miles</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<% if (currentUser && currentUser.role === 'admin') { %>
+  <a class="btn btn-outline" href="/admin/people/<%= vehicle.ownerId %>/edit">Manage in Admin</a>
+<% } %>
+
+<%- include('../partials/bottom') %>

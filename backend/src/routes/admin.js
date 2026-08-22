@@ -20,8 +20,12 @@ const CHILD_RESOURCES = {
       vin: 'string',
       model: 'string',
       color: 'string',
+      secondaryColor: 'string',
+      vehicleClass: 'string',
       registered: 'boolean',
       insured: 'boolean',
+      insuredSince: 'date',
+      leased: 'boolean',
     },
   },
   citations: {

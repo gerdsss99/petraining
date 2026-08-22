@@ -42,6 +42,14 @@ CREATE TABLE IF NOT EXISTS "Vehicle" (
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Added for the vehicle detail page. ADD COLUMN IF NOT EXISTS keeps this
+-- safe to re-run against a database created by an earlier version of this
+-- schema (e.g. a stack that's already been deployed once).
+ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "vehicleClass" TEXT;
+ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "secondaryColor" TEXT;
+ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "insuredSince" TIMESTAMPTZ;
+ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "leased" BOOLEAN NOT NULL DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS "Citation" (
   "id" SERIAL PRIMARY KEY,
   "amount" INTEGER NOT NULL,

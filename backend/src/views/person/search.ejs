@@ -1,0 +1,17 @@
+<%- include('../partials/top') %>
+
+<div class="search-page">
+  <form class="search-bar" method="GET" action="/person">
+    <input type="text" name="q" placeholder="Search by full name (e.g. Jordan Kessler)..." value="<%= q %>" autofocus>
+    <button class="btn" type="submit">Search</button>
+  </form>
+
+  <% if (error) { %>
+    <div class="search-error">&#9888; <%= error %></div>
+  <% } %>
+
+  <p class="text-muted search-hint">Enter a person's full name to open their profile directly. Searching by last
+    name alone works too, as long as it's unique.</p>
+</div>
+
+<%- include('../partials/bottom') %>

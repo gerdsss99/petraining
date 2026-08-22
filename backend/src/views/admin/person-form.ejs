@@ -91,18 +91,26 @@
       }) %>
 
   <% var vehicleRows = person.vehicles.map(function(v){
-       return { id: v.id, plate: v.plate, model: v.model, color: v.color, vin: v.vin, registered: v.registered ? 'Yes' : 'No', insured: v.insured ? 'Yes' : 'No' };
+       return {
+         id: v.id, plate: v.plate, model: v.model, color: v.color,
+         vehicleClass: v.vehicleClass || '—', vin: v.vin,
+         registered: v.registered ? 'Yes' : 'No', insured: v.insured ? 'Yes' : 'No', leased: v.leased ? 'Yes' : 'No',
+       };
      }); %>
   <%- include('../partials/admin-child-table', {
         title: 'Registered Vehicles', resource: 'vehicles', person: person, rows: vehicleRows,
-        columns: [{key:'plate',label:'Plate'},{key:'model',label:'Model'},{key:'color',label:'Color'},{key:'vin',label:'VIN'},{key:'registered',label:'Registered'},{key:'insured',label:'Insured'}],
+        columns: [{key:'plate',label:'Plate'},{key:'model',label:'Model'},{key:'color',label:'Color'},{key:'vehicleClass',label:'Class'},{key:'vin',label:'VIN'},{key:'registered',label:'Registered'},{key:'insured',label:'Insured'},{key:'leased',label:'Leased'}],
         addFields: [
           {name:'plate', label:'Plate', type:'text'},
           {name:'vin', label:'VIN', type:'text'},
           {name:'model', label:'Model', type:'text'},
-          {name:'color', label:'Color', type:'text'},
+          {name:'color', label:'Primary Color', type:'text'},
+          {name:'secondaryColor', label:'Secondary Color', type:'text'},
+          {name:'vehicleClass', label:'Class', type:'text'},
           {name:'registered', label:'Registered', type:'checkbox'},
-          {name:'insured', label:'Insured', type:'checkbox'}
+          {name:'insured', label:'Insured', type:'checkbox'},
+          {name:'insuredSince', label:'Insured Since', type:'date'},
+          {name:'leased', label:'Leased', type:'checkbox'}
         ]
       }) %>
 

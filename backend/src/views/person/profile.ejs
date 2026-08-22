@@ -62,7 +62,7 @@
         <% if (!person.vehicles.length) { %>No Registered Vehicles<% } else { %>
           <% person.vehicles.forEach(function(v){ %>
             <div class="mini-row">
-              <strong><%= v.color %> <%= v.model %></strong><br>
+              <strong><a href="/dmv/<%= v.id %>"><%= v.color %> <%= v.model %></a></strong><br>
               <span class="text-muted"><%= v.plate %> &middot; #<%= v.vin %></span>
             </div>
           <% }); %>

@@ -92,15 +92,19 @@ async function main() {
     jordan.id,
   ]);
   await pool.query(
-    'INSERT INTO "Vehicle" ("plate","vin","model","color","registered","insured","ownerId") VALUES ($1,$2,$3,$4,$5,$6,$7)',
-    ['TRN001', 'FICTVIN0000000001', 'Sabre GT', 'Red', true, true, jordan.id]
+    `INSERT INTO "Vehicle"
+       ("plate","vin","model","color","secondaryColor","vehicleClass","registered","insured","insuredSince","leased","ownerId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+    ['TRN001', 'FICTVIN0000000001', 'Sabre GT', 'Red - Metallic', 'Black - Matte', 'Sports', true, true, new Date('2026-02-27T18:08:59'), false, jordan.id]
   );
 
   await pool.query('INSERT INTO "Phone" ("number","personId") VALUES ($1,$2)', ['14559982', elena.id]);
   await pool.query('INSERT INTO "Residence" ("address","personId") VALUES ($1,$2)', ['9 Fictional Blvd, Training City', elena.id]);
   await pool.query(
-    'INSERT INTO "Vehicle" ("plate","vin","model","color","registered","insured","ownerId") VALUES ($1,$2,$3,$4,$5,$6,$7)',
-    ['TRN002', 'FICTVIN0000000002', 'Comet Turbo', 'Black', false, false, elena.id]
+    `INSERT INTO "Vehicle"
+       ("plate","vin","model","color","vehicleClass","registered","insured","leased","ownerId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+    ['TRN002', 'FICTVIN0000000002', 'Comet Turbo', 'Black - Metallic', 'Sports', false, false, false, elena.id]
   );
   await pool.query('INSERT INTO "CautionCode" ("code","detail","personId") VALUES ($1,$2,$3)', [
     'CC-4',
@@ -111,8 +115,10 @@ async function main() {
   await pool.query('INSERT INTO "Phone" ("number","personId") VALUES ($1,$2)', ['14559983', tyrell.id]);
   await pool.query('INSERT INTO "Business" ("name","role","personId") VALUES ($1,$2,$3)', ['Combs Freight Co.', 'Manager', tyrell.id]);
   await pool.query(
-    'INSERT INTO "Vehicle" ("plate","vin","model","color","registered","insured","ownerId") VALUES ($1,$2,$3,$4,$5,$6,$7)',
-    ['TRN003', 'FICTVIN0000000003', 'Mule 4x4', 'Grey', true, true, tyrell.id]
+    `INSERT INTO "Vehicle"
+       ("plate","vin","model","color","vehicleClass","registered","insured","insuredSince","leased","ownerId")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+    ['TRN003', 'FICTVIN0000000003', 'Mule 4x4', 'Grey - Matte', 'Off-Road', true, true, new Date('2025-11-04T10:00:00'), true, tyrell.id]
   );
 
   console.log('Creating citations, infractions, warrants, wanted entry...');

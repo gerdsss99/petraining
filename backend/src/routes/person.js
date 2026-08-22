@@ -4,11 +4,27 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
+// No results list — searching jumps straight to the matching profile (like
+// the reference MDC), or shows an error on the same search page if nothing
+// matches.
 router.get('/', requireAuth, async (req, res, next) => {
   try {
     const q = (req.query.q || '').trim();
-    const people = await models.searchEmployees(q);
-    res.render('person/list', { title: 'Person Lookup', people, q });
+    if (!q) {
+      return res.render('person/search', { title: 'Person Lookup', q, error: null });
+    }
+
+    const result = await models.findEmployeeByQuery(q);
+    if (result.status === 'found') {
+      return res.redirect(`/person/${result.id}`);
+    }
+
+    const error =
+      result.status === 'ambiguous'
+        ? `Multiple people match "${q}" — try their full first and last name.`
+        : `No person found matching "${q}".`;
+
+    res.render('person/search', { title: 'Person Lookup', q, error });
   } catch (err) {
     next(err);
   }

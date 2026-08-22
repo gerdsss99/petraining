@@ -51,21 +51,26 @@ async function getDashboardStats() {
 // ---------------------------------------------------------------------
 // Employees / Person Database
 // ---------------------------------------------------------------------
-async function searchEmployees(q) {
-  if (q) {
-    return many(
-      `SELECT e.*, d."name" AS "departmentName"
-       FROM "Employee" e LEFT JOIN "Department" d ON d."id" = e."departmentId"
-       WHERE e."firstName" ILIKE $1 OR e."lastName" ILIKE $1
-       ORDER BY e."lastName", e."firstName" LIMIT 50`,
-      [`%${q}%`]
-    );
-  }
-  return many(
-    `SELECT e.*, d."name" AS "departmentName"
-     FROM "Employee" e LEFT JOIN "Department" d ON d."id" = e."departmentId"
-     ORDER BY e."lastName", e."firstName" LIMIT 50`
+// Exact-match lookup used by the Person Lookup search box — mirrors how the
+// reference MDC jumps straight to a record rather than showing a results
+// list. Tries a full "First Last" match first, then falls back to a
+// last-name match if it uniquely identifies one person.
+// Returns { status: 'found', id } | { status: 'ambiguous' } | { status: 'not_found' }.
+async function findEmployeeByQuery(q) {
+  const query = (q || '').trim();
+  if (!query) return { status: 'empty' };
+
+  const exact = await one(
+    `SELECT "id" FROM "Employee" WHERE LOWER("firstName" || ' ' || "lastName") = LOWER($1)`,
+    [query]
   );
+  if (exact) return { status: 'found', id: exact.id };
+
+  const byLastName = await many(`SELECT "id" FROM "Employee" WHERE LOWER("lastName") = LOWER($1)`, [query]);
+  if (byLastName.length === 1) return { status: 'found', id: byLastName[0].id };
+  if (byLastName.length > 1) return { status: 'ambiguous' };
+
+  return { status: 'not_found' };
 }
 
 async function listEmployeesForAdmin() {
@@ -141,13 +146,23 @@ async function deleteEmployee(id) {
 // ---------------------------------------------------------------------
 // Vehicles / DMV
 // ---------------------------------------------------------------------
-async function searchVehicles(q) {
-  const base = `SELECT v.*, e."firstName" AS "ownerFirstName", e."lastName" AS "ownerLastName"
-                FROM "Vehicle" v JOIN "Employee" e ON e."id" = v."ownerId"`;
-  if (q) {
-    return many(`${base} WHERE v."plate" ILIKE $1 OR v."model" ILIKE $1 OR v."vin" ILIKE $1 ORDER BY v."id" LIMIT 50`, [`%${q}%`]);
-  }
-  return many(`${base} ORDER BY v."id" LIMIT 50`);
+// Exact-match plate lookup used by the DMV Database search box — plates are
+// unique, so unlike names this always resolves to at most one vehicle.
+// Ignores spaces/case so "SRY 298" and "sry298" both find "SRY298".
+async function findVehicleByPlate(q) {
+  const query = (q || '').trim();
+  if (!query) return null;
+  return one(`SELECT "id" FROM "Vehicle" WHERE UPPER(REPLACE("plate", ' ', '')) = UPPER(REPLACE($1, ' ', ''))`, [query]);
+}
+
+async function getVehicleFull(id) {
+  const vehicle = await one(
+    `SELECT v.*, e."firstName" AS "ownerFirstName", e."lastName" AS "ownerLastName"
+     FROM "Vehicle" v JOIN "Employee" e ON e."id" = v."ownerId"
+     WHERE v."id" = $1`,
+    [id]
+  );
+  return vehicle;
 }
 
 // ---------------------------------------------------------------------
@@ -237,13 +252,14 @@ module.exports = {
   insertRow,
   deleteRow,
   getDashboardStats,
-  searchEmployees,
+  findEmployeeByQuery,
   listEmployeesForAdmin,
   getEmployeeFull,
   createEmployee,
   updateEmployee,
   deleteEmployee,
-  searchVehicles,
+  findVehicleByPlate,
+  getVehicleFull,
   getActiveWantedEntries,
   upsertWanted,
   clearWanted,
