@@ -1,7 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <circle cx="32" cy="32" r="30" fill="#2f6fed"/>
-  <circle cx="32" cy="32" r="24" fill="#fff"/>
-  <circle cx="32" cy="32" r="24" fill="none" stroke="#2f6fed" stroke-width="2"/>
-  <text x="32" y="29" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#2f6fed">TRAINING</text>
-  <text x="32" y="40" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#2f6fed">MDC</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <path id="sealTopArc" d="M 26,104 A 74,74 0 1,1 174,104" />
+    <path id="sealBottomArc" d="M 174,100 A 74,74 0 1,1 26,100" />
+  </defs>
+
+  <circle cx="100" cy="100" r="98" fill="#1f4fc4"/>
+  <circle cx="100" cy="100" r="98" fill="none" stroke="#f0a80b" stroke-width="3"/>
+  <circle cx="100" cy="100" r="82" fill="#ffffff"/>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#1f4fc4" stroke-width="1.5"/>
+  <circle cx="100" cy="100" r="76" fill="none" stroke="#c7d3ee" stroke-width="1"/>
+
+  <!-- Simple civic star emblem -->
+  <g fill="#2f6fed">
+    <polygon points="100,54 108.5,78.5 134,78.5 113.5,93.5 121,118 100,103 79,118 86.5,93.5 66,78.5 91.5,78.5" />
+  </g>
+  <circle cx="100" cy="86" r="6" fill="#f0a80b"/>
+
+  <!-- Banner ribbon -->
+  <rect x="60" y="122" width="80" height="16" rx="2" fill="#f0a80b"/>
+  <text x="100" y="133.5" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="9" font-weight="700" fill="#1f2430" letter-spacing="1">EST. 2026</text>
+
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="12.5" font-weight="700" fill="#1f2430" letter-spacing="2.2">
+    <textPath href="#sealTopArc" startOffset="50%" text-anchor="middle">LOS SANTOS GOVERNMENT</textPath>
+  </text>
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="11" font-weight="700" fill="#1f2430" letter-spacing="2">
+    <textPath href="#sealBottomArc" startOffset="50%" text-anchor="middle">&#9733; TRAINING MDC &#9733;</textPath>
+  </text>
 </svg>

@@ -35,14 +35,19 @@
 <div class="panel">
   <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= currentUser.employee.firstName %> <%= currentUser.employee.lastName %></div>
   <div class="panel-body" style="display:flex; align-items:center; gap:20px;">
-    <div class="profile-photo">
-      <% if (currentUser.employee.imageUrl) { %>
-        <img src="<%= currentUser.employee.imageUrl %>" alt="">
-      <% } else { %>&#128100;<% } %>
+    <div class="profile-photo-wrap">
+      <div class="profile-photo">
+        <% if (currentUser.employee.imageUrl) { %>
+          <img src="<%= currentUser.employee.imageUrl %>" alt="">
+        <% } else { %>&#128100;<% } %>
+      </div>
+      <span class="photo-verified-badge" title="Verified profile">&#10003;</span>
     </div>
     <div>
       <div class="profile-name"><%= currentUser.employee.firstName %> <%= currentUser.employee.lastName %></div>
-      <div class="profile-meta"><%= cityName %> Government &middot; <%= currentUser.employee.rankTitle || 'Staff' %>
+      <div class="profile-meta">
+        <span class="dept-mini-icon">&#127963;</span>
+        <%= cityName %> Government &middot; <%= currentUser.employee.rankTitle || 'Staff' %>
         <span class="badge-id">#<%= currentUser.employee.badgeNumber %></span>
       </div>
     </div>

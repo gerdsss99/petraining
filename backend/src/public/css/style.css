@@ -37,15 +37,18 @@ a:hover { text-decoration: underline; }
   flex-direction: column;
 }
 .sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 14px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   font-weight: 600;
   font-size: 13px;
 }
-.sidebar-brand img { width: 34px; height: 34px; border-radius: 50%; }
+.sidebar-seal {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-seal img { width: 92px; height: 92px; }
 .sidebar-nav { list-style: none; margin: 0; padding: 10px 0; flex: 1; overflow-y: auto; }
 .sidebar-nav li a {
   display: flex;
@@ -225,6 +228,7 @@ a.icon-btn, a.icon-btn:hover { text-decoration: none; }
   font-weight: 600;
   font-size: 13px;
 }
+.panel-header .panel-icon { color: var(--text-muted); font-size: 12.5px; }
 .panel-header .collapse-dot {
   width: 16px; height: 16px;
   background: var(--accent);
@@ -272,6 +276,16 @@ table.data-table th {
 table.data-table td { padding: 9px 10px; border-bottom: 1px solid #f0f1f4; vertical-align: middle; }
 table.data-table tr:last-child td { border-bottom: none; }
 table.data-table tr:hover td { background: #fafbfc; }
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 22px;
+  padding: 10px 16px 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.table-footer-pager { color: #c7ccd4; letter-spacing: 2px; }
 
 .status-pill {
   display: inline-block;
@@ -299,6 +313,15 @@ table.data-table tr:hover td { background: #fafbfc; }
 .action-icon.link { background: #6f42c1; }
 .action-icon.danger { background: var(--danger); }
 a.action-icon, a.action-icon:hover { text-decoration: none; }
+.veh-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.veh-dot.ok { background: var(--success); }
+.veh-dot.bad { background: var(--danger); }
 
 /* Infraction report / citation forms */
 .infraction-codes-block { margin: 4px 0 14px; }
@@ -479,6 +502,17 @@ textarea.narrative-source {
   display: flex; align-items: center; justify-content: center;
   font-size: 11px;
 }
+.photo-verified-badge {
+  position: absolute; bottom: -4px; right: -4px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--success);
+  color: #fff;
+  border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
 .profile-name { font-size: 18px; font-weight: 700; margin: 0 0 4px; }
 .profile-meta { color: var(--text-muted); font-size: 12.5px; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .dept-mini-icon { font-size: 13px; }
@@ -628,20 +662,69 @@ textarea.narrative-source {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1f2430, #2f3648);
+  padding: 24px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(240,168,11,.10), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(47,111,237,.18), transparent 45%),
+    linear-gradient(135deg, #171b24, #232a3a);
 }
 .login-card {
   background: #fff;
-  border-radius: 8px;
-  padding: 34px 32px;
-  width: 320px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.25);
-  text-align: center;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 760px;
+  min-height: 460px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+  overflow: hidden;
+  display: flex;
 }
-.login-card img { width: 56px; height: 56px; margin-bottom: 10px; }
-.login-card h1 { font-size: 16px; margin: 0 0 4px; }
-.login-card p.subtitle { color: var(--text-muted); font-size: 12px; margin: 0 0 20px; }
-.login-card .form-group { text-align: left; }
+.error-card {
+  background: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 36px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+.error-card h1 { font-size: 19px; margin: 0 0 10px; }
+.error-card p.subtitle { color: var(--text-muted); font-size: 13px; margin: 0 0 22px; text-transform: none; letter-spacing: normal; }
+.error-card .btn { display: inline-block; padding: 10px 20px; font-size: 13.5px; }
+.login-side {
+  flex: 0 0 42%;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.08), transparent 55%),
+    linear-gradient(160deg, #1f4fc4, #17306e);
+  color: #fff;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+.login-side img { width: 96px; height: 96px; margin-bottom: 16px; filter: drop-shadow(0 6px 16px rgba(0,0,0,.35)); }
+.login-side h1 { font-size: 17px; margin: 0 0 4px; letter-spacing: .02em; }
+.login-side p.subtitle { color: rgba(255,255,255,.75); font-size: 12px; margin: 0; letter-spacing: .04em; text-transform: uppercase; }
+.login-side-rule { width: 40px; height: 2px; background: var(--warning); margin: 20px 0; border-radius: 2px; }
+.login-side-note { color: rgba(255,255,255,.65); font-size: 11.5px; line-height: 1.6; margin: 0; }
+
+.login-form-side {
+  flex: 1;
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.login-form-side h2 { font-size: 19px; margin: 0 0 4px; }
+.login-form-hint { color: var(--text-muted); font-size: 12.5px; margin: 0 0 20px; }
+.login-form-side .form-group { text-align: left; }
+.login-form-side .form-group label { font-size: 12px; }
+.login-form-side .form-group input {
+  padding: 10px 12px;
+  font-size: 13.5px;
+}
+.login-form-side .btn { padding: 11px 0; font-size: 13.5px; font-weight: 600; margin-top: 4px; }
 .login-error {
   background: #fdecea;
   color: var(--danger);
@@ -657,7 +740,24 @@ textarea.narrative-source {
   border-radius: 4px;
   padding: 8px 12px;
   font-size: 11.5px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+.login-demo-hint {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: #f5f7fa;
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.login-demo-hint strong { color: var(--text); }
+
+@media (max-width: 640px) {
+  .login-card { flex-direction: column; max-width: 400px; min-height: 0; }
+  .login-side { padding: 30px 24px; }
+  .login-form-side { padding: 32px 28px; }
 }
 
 @media (max-width: 900px) {

@@ -51,7 +51,7 @@
 <div class="profile-columns">
   <div class="profile-col">
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Profiling Samples</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128100;</span> Profiling Samples</div>
       <div class="panel-body">
         <div class="sample-row">&#129509; Fingerprints <span class="sample-status">On File</span></div>
         <div class="sample-row">&#129516; DNA <span class="sample-status not-set">Not Set</span></div>
@@ -59,11 +59,13 @@
     </div>
 
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Registered Vehicles</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128663;</span> Registered Vehicles</div>
       <div class="panel-body <%= person.vehicles.length ? '' : 'empty' %>">
         <% if (!person.vehicles.length) { %>No Registered Vehicles<% } else { %>
           <% person.vehicles.forEach(function(v){ %>
             <div class="mini-row">
+              <span class="veh-dot <%= v.registered ? 'ok' : 'bad' %>" title="<%= v.registered ? 'Registered' : 'Unregistered' %>"></span>
+              <span class="veh-dot <%= v.insured ? 'ok' : 'bad' %>" title="<%= v.insured ? 'Insured' : 'Uninsured' %>"></span>
               <strong><a href="/dmv/<%= v.id %>"><%= v.color %> <%= v.model %></a></strong><br>
               <span class="text-muted"><%= v.plate %> &middot; #<%= v.vin %></span>
             </div>
@@ -73,14 +75,14 @@
     </div>
 
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Firearms Related Purchases</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#8853;</span> Firearms Related Purchases</div>
       <div class="panel-body empty">No Firearm-Related Purchases</div>
     </div>
   </div>
 
   <div class="profile-col">
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Caution Codes</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#9888;</span> Caution Codes</div>
       <div class="panel-body <%= person.cautionCodes.length ? '' : 'empty' %>">
         <% if (!person.cautionCodes.length) { %>Caution Codes Not Set<% } else { %>
           <% person.cautionCodes.forEach(function(c){ %>
@@ -91,7 +93,7 @@
     </div>
 
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Phones</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#9742;</span> Phones</div>
       <div class="panel-body <%= person.phones.length ? '' : 'empty' %>">
         <% if (!person.phones.length) { %>Phone Numbers Not Set<% } else { %>
           <% person.phones.forEach(function(ph){ %>
@@ -102,7 +104,7 @@
     </div>
 
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Garages</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#127960;</span> Garages</div>
       <div class="panel-body <%= person.garages.length ? '' : 'empty' %>">
         <% if (!person.garages.length) { %>Unknown Garages<% } else { %>
           <% person.garages.forEach(function(g){ %>
@@ -115,7 +117,7 @@
 
   <div class="profile-col">
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Licenses</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128179;</span> Licenses</div>
       <div class="panel-body <%= person.licenses.length ? '' : 'empty' %>">
         <% if (!person.licenses.length) { %>No Licenses On File<% } else { %>
           <% person.licenses.forEach(function(l){ %>
@@ -130,7 +132,7 @@
     </div>
 
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Residences</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#127968;</span> Residences</div>
       <div class="panel-body <%= person.residences.length ? '' : 'empty' %>">
         <% if (!person.residences.length) { %>Unknown Residences<% } else { %>
           <% person.residences.forEach(function(r){ %>
@@ -141,7 +143,7 @@
     </div>
 
     <div class="panel">
-      <div class="panel-header"><span class="collapse-dot">&minus;</span> Businesses</div>
+      <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128188;</span> Businesses</div>
       <div class="panel-body <%= person.businesses.length ? '' : 'empty' %>">
         <% if (!person.businesses.length) { %>Unknown Businesses<% } else { %>
           <% person.businesses.forEach(function(b){ %>
@@ -154,7 +156,7 @@
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Arrest Warrants</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128196;</span> Arrest Warrants</div>
   <div class="panel-body <%= activeWarrants.length ? '' : 'empty' %>">
     <% if (!activeWarrants.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
@@ -169,12 +171,13 @@
           <% }); %>
         </tbody>
       </table>
+      <%- include('../partials/table-footer', { count: activeWarrants.length }) %>
     <% } %>
   </div>
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Warrant Records (Old)</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128220;</span> Warrant Records (Old)</div>
   <div class="panel-body <%= oldWarrants.length ? '' : 'empty' %>">
     <% if (!oldWarrants.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
@@ -188,12 +191,13 @@
           <% }); %>
         </tbody>
       </table>
+      <%- include('../partials/table-footer', { count: oldWarrants.length }) %>
     <% } %>
   </div>
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Outstanding Citations</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#127915;</span> Outstanding Citations</div>
   <div class="panel-body <%= unpaidCitations.length ? '' : 'empty' %>">
     <% if (!unpaidCitations.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
@@ -209,12 +213,13 @@
           <% }); %>
         </tbody>
       </table>
+      <%- include('../partials/table-footer', { count: unpaidCitations.length }) %>
     <% } %>
   </div>
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Paid Citations</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#9989;</span> Paid Citations</div>
   <div class="panel-body <%= paidCitations.length ? '' : 'empty' %>">
     <% if (!paidCitations.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
@@ -229,23 +234,24 @@
           <% }); %>
         </tbody>
       </table>
+      <%- include('../partials/table-footer', { count: paidCitations.length }) %>
     <% } %>
   </div>
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Information Record</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#8505;</span> Information Record</div>
   <div class="panel-body empty">No data available in table.</div>
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Criminal Record</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128295;</span> Criminal Record</div>
   <div class="panel-body empty">No data available in table.</div>
 </div>
 
 <div class="panel">
   <div class="panel-header">
-    <span class="collapse-dot">&minus;</span> Infraction Record
+    <span class="collapse-dot">&minus;</span> <span class="panel-icon">&#8505;</span> Infraction Record
     <a class="btn btn-sm" style="margin-left:auto;" href="/person/<%= person.id %>/infractions/new">+ Infraction Report</a>
   </div>
   <div class="panel-body <%= person.infractions.length ? '' : 'empty' %>">
@@ -271,17 +277,18 @@
           <% }); %>
         </tbody>
       </table>
+      <%- include('../partials/table-footer', { count: person.infractions.length }) %>
     <% } %>
   </div>
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Deleted Record</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128683;</span> Deleted Record</div>
   <div class="panel-body empty">No data available in table.</div>
 </div>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> Deleted Citations</div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <span class="panel-icon">&#128683;</span> Deleted Citations</div>
   <div class="panel-body empty">No data available in table.</div>
 </div>
 
