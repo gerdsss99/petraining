@@ -94,18 +94,25 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
 - **Person Database → DMV Database** — search by exact license plate, jumps
   to a full vehicle detail page (owner, class, paint, insurance/lease
   status, DMV record).
-- **Creating an Infraction Report** — from a profile's **Actions** menu (or
-  the **+ Infraction Report** button on the Infraction Record panel). The
-  fast path is pasting a whole report from the reports site straight into
-  the Narrative box — the app reads its `Citation(s):`/`Citation
-  Reason(s):` lists for penal codes, fines, and reasons, and every `<img>`
-  in it for an evidence gallery, with no manual entry needed. The `PENAL
-  CODE`/`+ INFRACTION` buttons are there for reports that don't come
-  pre-formatted, matching typed codes (e.g. `410`) against the seeded
+- **Creating an Infraction Report** — from a profile's **Actions** menu (the
+  only entry point now — the redundant button that used to sit on the
+  Infraction Record panel itself has been removed). The fast path is pasting
+  a whole report from the reports site straight into the Narrative box — the
+  app reads its `Citation(s):`/`Citation Reason(s):` lists for penal codes,
+  fines, and reasons, and every `<img>` in it for an evidence gallery, with
+  no manual entry needed. The `PENAL CODE`/`+ INFRACTION` buttons are there
+  for reports that don't come pre-formatted — typing a code (e.g. `410`)
+  opens a searchable dropdown of matching entries from the seeded
   `PenalCode` reference table (see `sql/seed.js` — the San Andreas Penal
-  Code's traffic title, codes 401–418). Every new report is filed as
-  **Closed** — there's no separate confirm step, submitting is the whole
-  action. Each penal code attached to the report also gets its own
+  Code's traffic title, codes 401–418), styled after the real MDC's code
+  picker. Location is picked the same way, via an **Add Location** map
+  modal — an originally-drawn fictional street map (not a copy of any real
+  map asset) you pan/zoom and click to drop a pin; the pin snaps to the
+  nearest named zone (matching the streets already used across the seeded
+  records) or falls back to a raw coordinate label if you click somewhere
+  open. Every new report is filed as **Closed** — there's no separate
+  confirm step, submitting is the whole action. Each penal code attached to
+  the report also gets its own
   individual line in the Infraction Record table below (e.g. `IC 418.
   Prohibited Parking`) alongside the parent "Infraction Report" row, the
   same way a single-code report always has. The report row's own Remark
@@ -135,12 +142,10 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
   qualifier at all (`IC 418 — Prohibited Parking`), a second gets `(Second
   Offense)`, and a third or later gets `(Third or More Offense)` — computed
   fresh every time a report is posted, in `models.buildInfractionCodeLabel`.
-- **Issuing a Citation** — a separate step from filing the report: either
-  from a profile's Actions menu, or the "Issue Citation" link on an
-  infraction report's View Record page (which pre-links the citation back
-  to that report and pre-fills amount/reason). Amount, reason, and an
-  optional plate/street are all free text. A citation with a plate attached
-  shows up on that vehicle's own DMV page under **Outstanding Fines**.
+- **Issuing a Citation** — a separate step from filing the report, from a
+  profile's Actions menu. Amount, reason, and an optional plate/street are
+  all free text. A citation with a plate attached shows up on that
+  vehicle's own DMV page under **Outstanding Fines**.
 - **Backdating citations/infractions** — the Admin panel's per-record "Add"
   forms for Citations and Infraction Records include an optional
   Date/Time field; leave it blank to use "now", or set it to log a past

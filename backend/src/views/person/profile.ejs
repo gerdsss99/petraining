@@ -261,7 +261,6 @@
 <div class="panel">
   <div class="panel-header">
     <span class="collapse-dot">&minus;</span> <span class="panel-icon">&#8505;</span> Infraction Record
-    <a class="btn btn-sm" style="margin-left:auto;" href="/person/<%= person.id %>/infractions/new">+ Infraction Report</a>
   </div>
   <div class="panel-body <%= person.infractions.length ? '' : 'empty' %>">
     <% if (!person.infractions.length) { %>No data available in table.<% } else { %>
