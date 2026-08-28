@@ -298,6 +298,7 @@ table.data-table tr:hover td { background: #fafbfc; }
 }
 .status-pill.paid, .status-pill.closed, .status-pill.valid { background: #1f2430; }
 .status-pill.unpaid, .status-pill.open, .status-pill.active { background: var(--danger); }
+.status-pill.admin-role { background: var(--warning); color: #1f2430; }
 
 .action-icon {
   display: inline-flex;

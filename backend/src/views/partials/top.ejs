@@ -50,7 +50,7 @@
       <div class="topbar">
         <div class="topbar-left">
           <% if (currentUser) { %>
-            <span class="topbar-role"><%= currentUser.employee ? currentUser.employee.rankTitle || 'Staff' : (currentUser.role === 'admin' ? 'Administrator' : 'Staff') %>
+            <span class="topbar-role"><%= currentUser.employee ? currentUser.employee.rankTitle || 'Staff' : (currentUser.role === 'admin' ? 'Administrator' : 'Traffic Officer') %>
               &mdash; <%= currentUser.employee ? currentUser.employee.firstName + ' ' + currentUser.employee.lastName : currentUser.username %></span>
             <span class="badge-id">#<%= currentUser.employee ? currentUser.employee.badgeNumber : currentUser.id %></span>
           <% } %>

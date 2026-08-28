@@ -16,20 +16,6 @@
         <div><span class="text-muted">Timestamp</span><br><%= infraction.timestamp.toLocaleString() %></div>
       </div>
 
-      <h4 class="section-subhead">Citation(s)</h4>
-      <% if (!infraction.codes.length) { %>
-        <div class="panel-body empty" style="padding:0 0 12px;">No penal codes attached.</div>
-      <% } else { %>
-        <table class="data-table" style="margin-bottom:14px;">
-          <thead><tr><th>Code</th><th>Reason</th><th>Suggested Fine</th></tr></thead>
-          <tbody>
-            <% infraction.codes.forEach(function(c){ %>
-              <tr><td><%= c.codeLabel %></td><td><%= c.reasonText || '—' %></td><td><%= c.fineAmount ? ('$' + c.fineAmount.toLocaleString()) : '—' %></td></tr>
-            <% }); %>
-          </tbody>
-        </table>
-      <% } %>
-
       <h4 class="section-subhead">Narrative</h4>
       <div class="narrative-box"><%- infraction.narrative || 'No narrative provided.' %></div>
 

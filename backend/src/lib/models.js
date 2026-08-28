@@ -239,6 +239,18 @@ async function createInfractionReport(data) {
       `INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount","reasonText") VALUES ($1,$2,$3,$4,$5)`,
       [infraction.id, c.penalCodeId || null, c.codeLabel, c.fineAmount || 0, c.reasonText || null]
     );
+
+    // Alongside the InfractionCode line (used to render the report itself),
+    // log a matching entry in the person's own Infraction Record for this
+    // specific code — e.g. "IC 418. Prohibited Parking" — the same way the
+    // Registered Vehicles / DMV workflow lists each violation individually.
+    // Without this, a multi-code report only ever showed up as the single
+    // "Infraction Report" row and its codes never appeared as their own
+    // Infraction Record entries.
+    await pool.query(
+      `INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5)`,
+      [data.personId, 'Infraction', c.codeLabel.replace(/\s*—\s*/, '. '), data.status, infraction.timestamp]
+    );
   }
 
   return infraction;

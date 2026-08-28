@@ -160,13 +160,16 @@
   <div class="panel-body <%= activeWarrants.length ? '' : 'empty' %>">
     <% if (!activeWarrants.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
-        <thead><tr><th>#</th><th>Classification</th><th>Charges</th><th>Filed By</th><th>Signed By</th><th>Status</th></tr></thead>
+        <thead><tr><th>#</th><th>Classification</th><th>Charges</th><th>Filed By</th><th>Signed By</th><th>Status</th><% if (currentUser && currentUser.role === 'admin') { %><th></th><% } %></tr></thead>
         <tbody>
           <% activeWarrants.forEach(function(w){ %>
             <tr>
               <td>#<%= w.id %></td><td><%= w.classification %></td><td><%= w.charges %></td>
               <td><%= w.filedBy %></td><td><%= w.signedBy || '—' %></td>
               <td><span class="status-pill <%= w.status.toLowerCase() %>"><%= w.status %></span></td>
+              <% if (currentUser && currentUser.role === 'admin') { %>
+                <td><%- include('../partials/admin-delete-button', { resource: 'warrants', id: w.id, personId: person.id }) %></td>
+              <% } %>
             </tr>
           <% }); %>
         </tbody>
@@ -201,7 +204,7 @@
   <div class="panel-body <%= unpaidCitations.length ? '' : 'empty' %>">
     <% if (!unpaidCitations.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
-        <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Status</th><th>Cited By</th></tr></thead>
+        <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Status</th><th>Cited By</th><% if (currentUser && currentUser.role === 'admin') { %><th></th><% } %></tr></thead>
         <tbody>
           <% unpaidCitations.forEach(function(c){ %>
             <tr>
@@ -209,6 +212,9 @@
               <td><%= c.reason %></td>
               <td><span class="status-pill <%= c.status.toLowerCase() %>"><%= c.status %></span></td>
               <td><%= c.issuedByFirstName ? c.issuedByFirstName + ' ' + c.issuedByLastName : '—' %></td>
+              <% if (currentUser && currentUser.role === 'admin') { %>
+                <td><%- include('../partials/admin-delete-button', { resource: 'citations', id: c.id, personId: person.id }) %></td>
+              <% } %>
             </tr>
           <% }); %>
         </tbody>
@@ -223,13 +229,16 @@
   <div class="panel-body <%= paidCitations.length ? '' : 'empty' %>">
     <% if (!paidCitations.length) { %>No data available in table.<% } else { %>
       <table class="data-table">
-        <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Cited By</th></tr></thead>
+        <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Cited By</th><% if (currentUser && currentUser.role === 'admin') { %><th></th><% } %></tr></thead>
         <tbody>
           <% paidCitations.forEach(function(c){ %>
             <tr>
               <td>#<%= c.id %></td><td><%= c.timestamp.toDateString() %></td><td>$<%= c.amount.toLocaleString() %></td>
               <td><%= c.reason %></td>
               <td><%= c.issuedByFirstName ? c.issuedByFirstName + ' ' + c.issuedByLastName : '—' %></td>
+              <% if (currentUser && currentUser.role === 'admin') { %>
+                <td><%- include('../partials/admin-delete-button', { resource: 'citations', id: c.id, personId: person.id }) %></td>
+              <% } %>
             </tr>
           <% }); %>
         </tbody>
@@ -268,6 +277,9 @@
                   <a class="action-icon link" title="Issue Citation" href="/person/<%= person.id %>/citations/new?infractionId=<%= i.id %>">&#128279;</a>
                 <% } else { %>
                   <span class="action-icon" style="opacity:.35;cursor:default;">&#128196;</span>
+                <% } %>
+                <% if (currentUser && currentUser.role === 'admin') { %>
+                  <%- include('../partials/admin-delete-button', { resource: 'infractions', id: i.id, personId: person.id }) %>
                 <% } %>
               </td>
               <td><%= i.timestamp.toDateString() %></td><td><%= i.type %></td>
