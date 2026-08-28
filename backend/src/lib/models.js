@@ -214,6 +214,40 @@ async function findPenalCodeByCode(raw) {
   return null;
 }
 
+// How many times this exact penal code has already been filed against this
+// person, across every past Infraction Report — the count that drives the
+// "(Second Offense)" / "(Third or More Offense)" suffix. Codes that never
+// resolved to a PenalCode row (a typo, a code not in the reference table)
+// can't be counted this way, so callers should treat penalCodeId-less codes
+// as always a first offense.
+async function countPriorOffenses(personId, penalCodeId) {
+  if (!penalCodeId) return 0;
+  const row = await one(
+    `SELECT COUNT(*)::int AS count
+     FROM "InfractionCode" ic
+     JOIN "Infraction" i ON i."id" = ic."infractionId"
+     WHERE i."personId" = $1 AND ic."penalCodeId" = $2`,
+    [personId, penalCodeId]
+  );
+  return row ? row.count : 0;
+}
+
+// Builds the final "IC 418 — Prohibited Parking (Second Offense)" label for
+// one code being attached to a new report, from a clean title (the reports
+// site's own offense wording is stripped out before this ever runs — see
+// narrativeParser.stripOffenseSuffix) plus this person's real prior count
+// for that code. A first offense gets no qualifier at all, matching how the
+// reference codes read when there's nothing to flag.
+async function buildInfractionCodeLabel(personId, c) {
+  if (!c.rawCode) return c.title; // no structured code — nothing to count or label with "IC ###"
+  const base = `IC ${c.rawCode} — ${c.title}`;
+  const priorCount = await countPriorOffenses(personId, c.penalCodeId);
+  const ordinal = priorCount + 1;
+  if (ordinal <= 1) return base;
+  if (ordinal === 2) return `${base} (Second Offense)`;
+  return `${base} (Third or More Offense)`;
+}
+
 // Creates an Infraction row plus its attached InfractionCode rows in one
 // go. `codes` is an array of { penalCodeId, codeLabel, fineAmount }.
 async function createInfractionReport(data) {
@@ -399,6 +433,8 @@ module.exports = {
   getVehicleFull,
   listPenalCodes,
   findPenalCodeByCode,
+  countPriorOffenses,
+  buildInfractionCodeLabel,
   createInfractionReport,
   getInfractionFull,
   createCitation,

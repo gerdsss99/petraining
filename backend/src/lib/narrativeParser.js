@@ -31,6 +31,19 @@ function stripTags(html) {
   return (html || '').replace(/<[^>]+>/g, '').trim();
 }
 
+// The reports site's pasted text often tacks an offense-count qualifier onto
+// the end of a code's title — "Prohibited Parking: Third or more Offense",
+// "Failure to Yield (2nd Offense)", etc. That count isn't trustworthy (it's
+// whatever the citing officer typed, not this person's actual record here),
+// so it's stripped from the title entirely — the app works out and appends
+// its own, based on this person's real prior count for that exact code (see
+// models.buildInfractionCodeLabel).
+function stripOffenseSuffix(text) {
+  return (text || '')
+    .replace(/[\s,:;-]*\(?\s*(1st|first|2nd|second|3rd|third)\s*(or\s+(more|greater|subsequent))?\s*offen[cs]e\)?\.?\s*$/i, '')
+    .trim();
+}
+
 function extractListItems(html, afterLabel) {
   const labelIdx = html.indexOf(afterLabel);
   if (labelIdx === -1) return [];
@@ -43,8 +56,13 @@ function extractListItems(html, afterLabel) {
 }
 
 // Matches e.g. `<strong>IC 418</strong> — Prohibited Parking: Third or more Offense ($5000)`
-// but tolerates a missing <strong>, a missing "IC", an em-dash or hyphen, and extra whitespace.
-const CODE_LINE = /(?:<strong>)?\s*(?:IC\s*)?(\d{2,4})\s*(?:<\/strong>)?\s*[—-]\s*([^($<]+?)\s*\(\$\s*([\d,]+)\s*\)/i;
+// but tolerates a missing <strong>, a missing "IC", an em-dash or hyphen, extra
+// whitespace, and an offense qualifier written either way ("Title: Nth
+// Offense" or "Title (Nth Offense)") — the title capture only excludes "<"
+// (so stray markup can't leak in) and is anchored to the trailing "($fine)",
+// so anything in between, parens included, is fair game and gets cleaned up
+// afterward by stripOffenseSuffix.
+const CODE_LINE = /(?:<strong>)?\s*(?:IC\s*)?(\d{2,4})\s*(?:<\/strong>)?\s*[—-]\s*([^<]+?)\s*\(\$\s*([\d,]+)\s*\)\s*$/i;
 
 function parseInfractionNarrative(rawHtml) {
   const html = sanitizeHtml(rawHtml || '');
@@ -56,12 +74,18 @@ function parseInfractionNarrative(rawHtml) {
     const match = item.match(CODE_LINE);
     const reasonText = reasonItems[i] ? stripTags(reasonItems[i]) : null;
     if (!match) {
-      return { rawCode: null, codeLabel: stripTags(item), fineAmount: 0, reasonText };
+      const title = stripOffenseSuffix(stripTags(item));
+      return { rawCode: null, title, codeLabel: title, fineAmount: 0, reasonText };
     }
-    const [, code, title, fineRaw] = match;
+    const [, code, rawTitle, fineRaw] = match;
+    const title = stripOffenseSuffix(rawTitle.trim());
     return {
       rawCode: code,
-      codeLabel: `IC ${code} — ${title.trim()}`,
+      title,
+      // codeLabel here is only a fallback for a code the offense-count pass
+      // downstream can't resolve against the PenalCode table (no penalCodeId
+      // match) — createInfractionReport recomputes it for every code it can.
+      codeLabel: `IC ${code} — ${title}`,
       fineAmount: parseInt(fineRaw.replace(/,/g, ''), 10) || 0,
       reasonText,
     };

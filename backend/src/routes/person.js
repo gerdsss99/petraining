@@ -101,9 +101,9 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
     for (const raw of manualRaw) {
       const match = await models.findPenalCodeByCode(raw);
       if (match) {
-        manualCodes.push({ rawCode: match.code, penalCodeId: match.id, codeLabel: `IC ${match.code} — ${match.title}`, fineAmount: match.fineAmount, reasonText: null });
+        manualCodes.push({ rawCode: match.code, penalCodeId: match.id, title: match.title, fineAmount: match.fineAmount, reasonText: null });
       } else {
-        manualCodes.push({ rawCode: null, penalCodeId: null, codeLabel: raw, fineAmount: 0, reasonText: null });
+        manualCodes.push({ rawCode: null, penalCodeId: null, title: raw, fineAmount: 0, reasonText: null });
       }
     }
 
@@ -111,10 +111,18 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
     const seen = new Set();
     const codes = [];
     for (const c of [...parsed.codes, ...manualCodes]) {
-      const key = c.rawCode ? `code:${c.rawCode}` : `label:${c.codeLabel}`;
+      const key = c.rawCode ? `code:${c.rawCode}` : `label:${c.title}`;
       if (seen.has(key)) continue;
       seen.add(key);
       codes.push(c);
+    }
+
+    // Every code's final label gets its offense count computed fresh here —
+    // "(Second Offense)", "(Third or More Offense)", or nothing for a first
+    // offense — based on this person's real prior citation history for that
+    // exact code, never on whatever offense wording the pasted report had.
+    for (const c of codes) {
+      c.codeLabel = await models.buildInfractionCodeLabel(id, c);
     }
 
     const reportedBy = req.currentUser && req.currentUser.employee

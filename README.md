@@ -98,6 +98,16 @@ next restart.
   same way a single-code report always has. The report's own view page only
   shows the narrative (which already contains the pasted citation list) —
   it no longer repeats it as a separate table above the narrative.
+- **Offense counts on a code's label** — whatever offense wording the
+  pasted report itself used ("Third or more Offense", "(2nd Offense)", …)
+  is stripped out and ignored; it isn't this person's real history, just
+  whatever the citing officer happened to type. Instead, every code that
+  resolves against the `PenalCode` reference table gets its own count of
+  how many times *this exact code* has already been filed against *this
+  person*, and the label is built from that: a first offense gets no
+  qualifier at all (`IC 418 — Prohibited Parking`), a second gets `(Second
+  Offense)`, and a third or later gets `(Third or More Offense)` — computed
+  fresh every time a report is posted, in `models.buildInfractionCodeLabel`.
 - **Issuing a Citation** — a separate step from filing the report: either
   from a profile's Actions menu, or the "Issue Citation" link on an
   infraction report's View Record page (which pre-links the citation back
