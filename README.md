@@ -62,14 +62,27 @@ and your new code won't show up. Two reliable ways around this:
   settings. Your data survives this — it lives in the named `mdc_pgdata`
   volume, not in the container.
 
-### Turning off auto-seeding
+### Redeploys won't wipe your data
 
-`SEED_ON_START=true` re-runs the seed script (which wipes and rewrites all
-tables) every time the `app` container starts. That's convenient while
-you're experimenting, but once you've built out real training profiles
-through the Admin panel, set `SEED_ON_START=false` in the stack's
-environment variables and redeploy — otherwise your edits get reset on the
-next restart.
+The seed script only ever *adds* the fictional demo data to an **empty**
+database. Once there's anything real in there — a training profile,
+account, citation, whatever staff have built up through the app — it
+refuses to touch the database at all, even though `SEED_ON_START=true`
+still runs it on every container start/redeploy. So a new zip, a Portainer
+redeploy, a container restart: none of them will ever reset what you've
+built. You don't need to change anything for this — it's the default.
+
+If you ever *do* want to wipe everything and reload the fictional demo
+data (say, resetting a training environment between sessions), set
+`FORCE_SEED=true` in the stack's environment variables for one redeploy,
+then set it back to `false` (or remove it) afterward so the next redeploy
+doesn't wipe things again. Locally, that's `FORCE_SEED=true node
+sql/seed.js`.
+
+Your data also just plain lives somewhere durable regardless: it's in the
+named `mdc_pgdata` Docker volume, not in the `app` container, so it
+survives a redeploy, an image rebuild, even deleting and recreating the
+stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
 
 ## Using it
 
@@ -95,9 +108,23 @@ next restart.
   action. Each penal code attached to the report also gets its own
   individual line in the Infraction Record table below (e.g. `IC 418.
   Prohibited Parking`) alongside the parent "Infraction Report" row, the
-  same way a single-code report always has. The report's own view page only
-  shows the narrative (which already contains the pasted citation list) —
-  it no longer repeats it as a separate table above the narrative.
+  same way a single-code report always has. The report row's own Remark
+  column doesn't repeat that code text — it just points at those child
+  lines, e.g. `Infraction #7, Infraction #8`. The report's own view page
+  only shows the narrative (which already contains the pasted citation
+  list) and any evidence photos — it no longer repeats the codes as a
+  separate table above the narrative, and no longer lists citations issued
+  from the report either (that's still tracked, just not shown there).
+- **Manually-picked codes override the paste** — if a narrative documents
+  more citations than the officer actually means to file (or one that
+  doesn't parse cleanly), typing code(s) into the `PENAL CODE`/`+
+  INFRACTION` rows before submitting is treated as the deliberate, final
+  list — the narrative's own auto-detected `Citation(s):` codes are then
+  ignored rather than added on top. (Previously both were merged together,
+  so a two-code narrative always attached both codes even if only one was
+  picked by hand.) The narrative's text and any evidence images are still
+  used either way; only code auto-detection is skipped once codes are
+  picked manually.
 - **Offense counts on a code's label** — whatever offense wording the
   pasted report itself used ("Third or more Offense", "(2nd Offense)", …)
   is stripped out and ignored; it isn't this person's real history, just

@@ -107,10 +107,18 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
       }
     }
 
-    // Merge, de-duplicating anything the paste already picked up.
+    // Picking codes manually via the PENAL CODE / + INFRACTION buttons is an
+    // explicit, deliberate choice of exactly what to file — it overrides
+    // whatever the narrative's own "Citation(s):" list happens to contain,
+    // rather than adding to it. Without this, a narrative documenting two
+    // citations (both real, but only one of which the officer meant to
+    // formally charge) would always get both attached regardless of what
+    // was picked by hand. The narrative is still used for everything else —
+    // the display text and any evidence images — just not for auto-picking
+    // codes once the officer has picked their own.
     const seen = new Set();
     const codes = [];
-    for (const c of [...parsed.codes, ...manualCodes]) {
+    for (const c of manualRaw.length ? manualCodes : parsed.codes) {
       const key = c.rawCode ? `code:${c.rawCode}` : `label:${c.title}`;
       if (seen.has(key)) continue;
       seen.add(key);

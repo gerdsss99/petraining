@@ -1,5 +1,13 @@
 // Seeds the training MDC with entirely fictional demo data.
-// Safe to re-run: it wipes and rebuilds all tables each time.
+//
+// Safe to re-run — but NOT in the way that used to mean "wipes and rebuilds
+// everything every time." It now refuses to touch a database that already
+// has real data in it (training profiles, citations, whatever staff have
+// built up), so re-running this — including every time SEED_ON_START=true
+// runs it on container start, i.e. every redeploy — is a harmless no-op
+// once you've actually started using the app. Pass FORCE_SEED=true when you
+// genuinely want to wipe everything back to the fictional demo data (e.g.
+// resetting a training environment between sessions).
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const pool = require('../src/lib/db');
@@ -9,6 +17,17 @@ const { parseInfractionNarrative } = require('../src/lib/narrativeParser');
 async function main() {
   console.log('Ensuring schema exists...');
   await migrate();
+
+  if (process.env.FORCE_SEED !== 'true') {
+    const existing = await pool.query('SELECT COUNT(*)::int AS count FROM "Employee"');
+    if (existing.rows[0].count > 0) {
+      console.log(
+        `Database already has data (${existing.rows[0].count} profile(s)) — skipping seed so nothing gets ` +
+          'overwritten. Set FORCE_SEED=true if you actually want to wipe everything and reload the demo data.'
+      );
+      return;
+    }
+  }
 
   console.log('Clearing existing data...');
   await pool.query(`
@@ -194,6 +213,7 @@ async function main() {
       ]
     )
   ).rows[0];
+  const speedingChildIds = [];
   for (const c of speedingParsed.codes) {
     const penalCodeId = c.rawCode && penalCodes[c.rawCode] ? penalCodes[c.rawCode].id : null;
     await pool.query(
@@ -216,12 +236,20 @@ async function main() {
     [jordan.id, priya.id, 750, 'IC 112 — Illegal Parking', 'Unpaid', new Date('2026-06-02T14:05:00'), 'TRN001']
   );
 
-  await pool.query('INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5)', [
-    jordan.id,
-    'Infraction',
-    'IC 410. Speeding',
-    'Closed',
-    new Date('2026-01-22T09:44:00'),
+  const speedingChild = (
+    await pool.query(
+      'INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [jordan.id, 'Infraction', 'IC 410. Speeding', 'Closed', new Date('2026-01-22T09:44:00')]
+    )
+  ).rows[0];
+  speedingChildIds.push(speedingChild.id);
+
+  // Same convention the app itself uses when a report is filed for real —
+  // the report row's own remark just points at its line-item children
+  // rather than repeating their code text.
+  await pool.query('UPDATE "Infraction" SET "remark" = $1 WHERE "id" = $2', [
+    speedingChildIds.map((cid) => `Infraction #${cid}`).join(', '),
+    speedingReport.id,
   ]);
 
   await pool.query(

@@ -29,25 +29,6 @@
           <% }); %>
         </div>
       <% } %>
-
-      <h4 class="section-subhead">Attached Citations</h4>
-      <% if (!infraction.citations.length) { %>
-        <div class="panel-body empty" style="padding:0 0 12px;">No citations issued from this report yet.</div>
-      <% } else { %>
-        <table class="data-table" style="margin-bottom:14px;">
-          <thead><tr><th>#</th><th>Timestamp</th><th>Amount</th><th>Reason</th><th>Plate</th><th>Street</th><th>Status</th><th>Issued By</th></tr></thead>
-          <tbody>
-            <% infraction.citations.forEach(function(c){ %>
-              <tr>
-                <td>#<%= c.id %></td><td><%= c.timestamp.toDateString() %></td><td>$<%= c.amount.toLocaleString() %></td>
-                <td><%= c.reason %></td><td><%= c.vehiclePlate || '—' %></td><td><%= c.streetName || '—' %></td>
-                <td><span class="status-pill <%= c.status.toLowerCase() %>"><%= c.status %></span></td>
-                <td><%= c.issuedByFirstName ? c.issuedByFirstName + ' ' + c.issuedByLastName : '—' %></td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table>
-      <% } %>
     </div>
     <div class="modal-card-footer">
       <a class="btn btn-outline" href="/person/<%= infraction.personId %>">Back to Profile</a>

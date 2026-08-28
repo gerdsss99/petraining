@@ -268,6 +268,7 @@ async function createInfractionReport(data) {
     ]
   );
 
+  const childIds = [];
   for (const c of data.codes) {
     await pool.query(
       `INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount","reasonText") VALUES ($1,$2,$3,$4,$5)`,
@@ -281,10 +282,20 @@ async function createInfractionReport(data) {
     // Without this, a multi-code report only ever showed up as the single
     // "Infraction Report" row and its codes never appeared as their own
     // Infraction Record entries.
-    await pool.query(
-      `INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5)`,
+    const child = await one(
+      `INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [data.personId, 'Infraction', c.codeLabel.replace(/\s*—\s*/, '. '), data.status, infraction.timestamp]
     );
+    childIds.push(child.id);
+  }
+
+  // The report row's own remark doesn't repeat the code text (that's what
+  // the child rows above are for) — it just points at them, "Infraction #7,
+  // Infraction #8", the same way the report references its own line items
+  // everywhere else in the app.
+  if (childIds.length) {
+    infraction.remark = childIds.map((cid) => `Infraction #${cid}`).join(', ');
+    await pool.query('UPDATE "Infraction" SET "remark" = $1 WHERE "id" = $2', [infraction.remark, infraction.id]);
   }
 
   return infraction;
