@@ -430,6 +430,16 @@ async function deleteAccount(id) {
   await pool.query('DELETE FROM "Account" WHERE "id" = $1', [id]);
 }
 
+// Used both by the forced first-login change screen and a voluntary
+// "change my password" — clears mustChangePassword either way, since a
+// voluntary change satisfies the same requirement a forced one would.
+async function setAccountPassword(id, passwordHash) {
+  await pool.query(
+    'UPDATE "Account" SET "passwordHash" = $1, "mustChangePassword" = false WHERE "id" = $2',
+    [passwordHash, id]
+  );
+}
+
 module.exports = {
   insertRow,
   deleteRow,
@@ -459,4 +469,5 @@ module.exports = {
   listAccounts,
   createAccount,
   deleteAccount,
+  setAccountPassword,
 };

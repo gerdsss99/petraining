@@ -340,6 +340,62 @@ a.icon-btn, a.icon-btn:hover { text-decoration: none; }
   .profile-columns { grid-template-columns: 1fr; }
 }
 
+/* Admin panel quick-nav — sticky jump bar to each section, plus the
+   headline "onboard someone" call to action right where an FTO lands. */
+.admin-quicknav {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.admin-quicknav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.admin-quicknav a:hover { background: #e6e9ee; text-decoration: none; }
+.admin-quicknav-count {
+  background: #fff;
+  color: var(--text-muted);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.admin-quicknav-cta {
+  margin-left: auto;
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+.admin-quicknav-cta .admin-quicknav-count { display: none; }
+.admin-quicknav-cta:hover { background: var(--accent-dark) !important; }
+
+/* Per-table search box, sitting right above its table */
+.table-toolbar { margin-bottom: 10px; }
+.table-toolbar .table-search {
+  width: 100%;
+  max-width: 360px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12.5px;
+}
+
 table.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 table.data-table th {
   text-align: left;
@@ -349,6 +405,14 @@ table.data-table th {
   padding: 8px 10px;
   white-space: nowrap;
 }
+table.data-table th.sortable-th {
+  cursor: pointer;
+  user-select: none;
+}
+table.data-table th.sortable-th:hover { color: var(--text); }
+table.data-table th.sortable-th::after { content: '\2195'; opacity: .35; margin-left: 5px; font-size: 10px; }
+table.data-table th.sortable-th.sorted-asc::after { content: '\2191'; opacity: 1; color: var(--accent); }
+table.data-table th.sortable-th.sorted-desc::after { content: '\2193'; opacity: 1; color: var(--accent); }
 table.data-table td { padding: 9px 10px; border-bottom: 1px solid #f0f1f4; vertical-align: middle; }
 table.data-table tr:last-child td { border-bottom: none; }
 table.data-table tr:hover td { background: #fafbfc; }
@@ -850,6 +914,32 @@ textarea.narrative-source {
 .inline-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
 .inline-form .form-group { margin-bottom: 0; min-width: 120px; }
 
+/* Onboard New Employee — result panel + one-time credentials reveal */
+.onboard-success-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.credentials-box {
+  background: #eef7ee;
+  border: 1px solid #b7dfb9;
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  max-width: 480px;
+}
+.credentials-box-title { font-weight: 700; font-size: 13px; margin-bottom: 12px; color: #1e5c22; }
+.credentials-row {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px;
+  padding: 6px 0; font-size: 13px; border-bottom: 1px dashed #cfe8d0;
+}
+.credentials-row:last-of-type { border-bottom: none; }
+.credentials-row span { color: var(--text-muted); }
+.credentials-password {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 15px; letter-spacing: .04em; color: #1e5c22;
+}
+.credentials-warning {
+  font-size: 11.5px; color: #7a5c00; background: #fff7e0; border: 1px solid #f0d98c;
+  border-radius: 4px; padding: 8px 10px; margin: 12px 0 0; line-height: 1.5;
+}
+.onboard-success-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
 .footer-note {
   text-align: center;
   color: var(--text-muted);
@@ -895,6 +985,21 @@ textarea.narrative-source {
 .error-card h1 { font-size: 19px; margin: 0 0 10px; }
 .error-card p.subtitle { color: var(--text-muted); font-size: 13px; margin: 0 0 22px; text-transform: none; letter-spacing: normal; }
 .error-card .btn { display: inline-block; padding: 10px 20px; font-size: 13.5px; }
+
+.password-card {
+  background: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 380px;
+  padding: 36px 32px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.35);
+}
+.password-card h1 { font-size: 19px; margin: 0 0 6px; }
+.password-card .login-form-hint { margin: 0 0 18px; }
+.password-card .training-banner { margin: 12px 0 18px; }
+.password-card .form-group input { padding: 10px 12px; font-size: 13.5px; }
+.password-card .btn { padding: 11px 0; font-size: 13.5px; font-weight: 600; margin-top: 4px; }
+.password-card .login-demo-hint { text-align: center; }
 .login-side {
   flex: 0 0 42%;
   background:

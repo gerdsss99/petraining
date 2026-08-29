@@ -27,8 +27,18 @@ CREATE TABLE IF NOT EXISTS "Account" (
   "passwordHash" TEXT NOT NULL,
   "role" TEXT NOT NULL DEFAULT 'staff',
   "employeeId" INTEGER UNIQUE REFERENCES "Employee"("id") ON DELETE SET NULL,
+  "mustChangePassword" BOOLEAN NOT NULL DEFAULT false,
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- CREATE TABLE IF NOT EXISTS is a no-op on a database that already has the
+-- table, so a brand-new column added here would silently never reach an
+-- already-deployed install (see README: redeploys are meant to preserve
+-- your data, not require a wipe to pick up schema changes). ALTER TABLE ...
+-- ADD COLUMN IF NOT EXISTS is the idempotent way to land a new column on
+-- both a fresh database and an existing one — add future new columns the
+-- same way, right after the table's CREATE TABLE block.
+ALTER TABLE "Account" ADD COLUMN IF NOT EXISTS "mustChangePassword" BOOLEAN NOT NULL DEFAULT false;
 
 CREATE TABLE IF NOT EXISTS "Vehicle" (
   "id" SERIAL PRIMARY KEY,

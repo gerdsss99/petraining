@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const models = require('../lib/models');
 const { requireAdmin } = require('../middleware/auth');
+const { generateTempPassword } = require('../lib/passwords');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -99,12 +100,17 @@ function buildData(fields, body) {
 // ---------------------------------------------------------------------
 router.get('/', async (req, res, next) => {
   try {
-    const [people, accounts, departments] = await Promise.all([
+    const [allPeople, accounts, departments] = await Promise.all([
       models.listEmployeesForAdmin(),
       models.listAccounts(),
       models.listDepartments(),
     ]);
-    res.render('admin/index', { title: 'Admin', people, accounts, departments });
+    // Personnel and civilians are creation-time separate flows now (see
+    // "Onboard New Employee" vs "New Civilian Profile" below), so the
+    // overview lists them apart too rather than one mixed table.
+    const personnel = allPeople.filter((p) => p.isPersonnel);
+    const civilians = allPeople.filter((p) => !p.isPersonnel);
+    res.render('admin/index', { title: 'Admin', personnel, civilians, accounts, departments });
   } catch (err) {
     next(err);
   }
@@ -116,7 +122,37 @@ router.get('/', async (req, res, next) => {
 router.get('/people/new', async (req, res, next) => {
   try {
     const departments = await models.listDepartments();
-    res.render('admin/person-form', { title: 'New Profile', person: null, departments });
+    res.render('admin/person-form', { title: 'New Profile', person: null, departments, mode: 'full' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Civilians are a deliberately separate, much shorter flow from onboarding
+// personnel below — no badge, rank, department, or login account, just the
+// identity fields a training civilian record actually needs.
+router.get('/people/new-civilian', async (req, res, next) => {
+  try {
+    res.render('admin/person-form', { title: 'New Civilian Profile', person: null, departments: [], mode: 'civilian' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/people/civilian', async (req, res, next) => {
+  try {
+    const { firstName, lastName, age, imageUrl } = req.body;
+    const person = await models.createEmployee({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      age: age ? parseInt(age, 10) : null,
+      imageUrl: imageUrl || null,
+      badgeNumber: null,
+      rankTitle: null,
+      isPersonnel: false,
+      departmentId: null,
+    });
+    res.redirect(`/admin/people/${person.id}/edit`);
   } catch (err) {
     next(err);
   }
@@ -159,7 +195,7 @@ router.get('/people/:id/edit', async (req, res, next) => {
       return res.status(404).render('error', { title: 'Not Found', message: 'No profile with that ID.' });
     }
 
-    res.render('admin/person-form', { title: `Edit ${person.firstName} ${person.lastName}`, person, departments });
+    res.render('admin/person-form', { title: `Edit ${person.firstName} ${person.lastName}`, person, departments, mode: 'full' });
   } catch (err) {
     next(err);
   }
@@ -269,6 +305,87 @@ router.delete('/:resource/:id/for/:personId', async (req, res, next) => {
 });
 
 // ---------------------------------------------------------------------
+// Onboard New Employee — the one-stop FTO flow. Creating a personnel
+// profile and creating its login account used to be two separate trips
+// through two different panels; this does both in a single form, and (when
+// a login account is requested) hands back a one-time temporary password
+// the FTO gives to the new officer, who is forced to set their own on
+// first sign-in. Nothing about this route is reachable by a non-admin.
+// ---------------------------------------------------------------------
+router.get('/onboard', async (req, res, next) => {
+  try {
+    const departments = await models.listDepartments();
+    res.render('admin/onboard-employee', {
+      title: 'Onboard New Employee', departments, result: null, error: null, formData: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/onboard', async (req, res, next) => {
+  try {
+    const {
+      firstName, lastName, age, imageUrl, badgeNumber, rankTitle, departmentName,
+      createLogin, username, role,
+    } = req.body;
+
+    if (createLogin === 'on' && username && username.trim()) {
+      const existing = await models.findAccountByUsername(username.trim());
+      if (existing) {
+        const departments = await models.listDepartments();
+        // Hand the whole submission back so the FTO doesn't have to retype a
+        // 10-field form over one taken username — only the username itself
+        // needs to change.
+        return res.status(400).render('admin/onboard-employee', {
+          title: 'Onboard New Employee',
+          departments,
+          result: null,
+          error: `Username "${username.trim()}" is already taken — pick another.`,
+          formData: req.body,
+        });
+      }
+    }
+
+    const departmentId = await resolveDepartmentId(departmentName);
+    const person = await models.createEmployee({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      age: age ? parseInt(age, 10) : null,
+      imageUrl: imageUrl || null,
+      badgeNumber: badgeNumber ? parseInt(badgeNumber, 10) : null,
+      rankTitle: rankTitle || null,
+      isPersonnel: true,
+      departmentId,
+    });
+
+    let credentials = null;
+    if (createLogin === 'on' && username && username.trim()) {
+      const tempPassword = generateTempPassword();
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+      const account = await models.createAccount({
+        username: username.trim(),
+        passwordHash,
+        role: role === 'admin' ? 'admin' : 'staff',
+        employeeId: person.id,
+        mustChangePassword: true,
+      });
+      credentials = { username: account.username, tempPassword, role: account.role };
+    }
+
+    const departments = await models.listDepartments();
+    res.render('admin/onboard-employee', {
+      title: 'Onboard New Employee',
+      departments,
+      error: null,
+      result: { person, credentials },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------
 // Login accounts (who can sign in to the training MDC)
 // ---------------------------------------------------------------------
 router.post('/accounts', async (req, res, next) => {
@@ -280,6 +397,10 @@ router.post('/accounts', async (req, res, next) => {
       passwordHash,
       role: role === 'admin' ? 'admin' : 'staff',
       employeeId: employeeId ? Number(employeeId) : null,
+      // An admin picking the password here is functionally the same as a
+      // temp password — the account holder still doesn't know it wasn't
+      // chosen by them, so it still forces a change on first sign-in.
+      mustChangePassword: true,
     });
     res.redirect('/admin');
   } catch (err) {

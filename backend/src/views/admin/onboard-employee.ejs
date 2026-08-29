@@ -1,0 +1,154 @@
+<%- include('../partials/top') %>
+
+<div class="panel">
+  <div class="panel-header">
+    <span class="collapse-dot">&minus;</span> Onboard New Employee
+    <a href="/admin" class="btn btn-sm btn-outline" style="margin-left:auto;">&larr; Back to Admin Panel</a>
+  </div>
+  <div class="panel-body">
+    <p class="text-muted" style="margin:-2px 0 16px; font-size:12.5px; line-height:1.6;">
+      The one-stop FTO flow: creates the personnel profile and (optionally) its login account together, instead of
+      two separate trips through Training Profiles and Login Accounts. If a login account is created, a one-time
+      temporary password is generated for it &mdash; give it to the new officer, and they'll be required to set
+      their own password the moment they sign in.
+    </p>
+
+    <% if (error) { %><div class="search-error">&#9888; <%= error %></div><% } %>
+    <% var fd = (typeof formData !== 'undefined' && formData) ? formData : {}; %>
+
+    <% if (result) { %>
+      <div class="onboard-success">
+        <div class="onboard-success-title">&#9989; Profile created for <%= result.person.firstName %> <%= result.person.lastName %></div>
+        <% if (result.credentials) { %>
+          <div class="credentials-box">
+            <div class="credentials-box-title">&#128273; One-time login credentials &mdash; shown once, right now</div>
+            <div class="credentials-row"><span>Username</span><strong><%= result.credentials.username %></strong></div>
+            <div class="credentials-row"><span>Temporary Password</span><strong class="credentials-password" id="tempPasswordValue"><%= result.credentials.tempPassword %></strong></div>
+            <div class="credentials-row"><span>Role</span><strong><%= result.credentials.role === 'admin' ? 'Administrator' : 'Traffic Officer' %></strong></div>
+            <button type="button" class="btn btn-sm" id="copyCredentialsBtn" style="margin-top:10px;">Copy Username &amp; Password</button>
+            <p class="credentials-warning">This password will not be shown again after you leave this page. Hand it to
+              <%= result.person.firstName %> now &mdash; they'll be required to set their own password the moment
+              they sign in.</p>
+          </div>
+        <% } else { %>
+          <p class="text-muted">No login account was created for this profile. You can add one any time from the
+            Login Accounts panel below.</p>
+        <% } %>
+        <div class="onboard-success-actions">
+          <a class="btn" href="/admin/people/<%= result.person.id %>/edit">Edit Full Profile</a>
+          <a class="btn btn-outline" href="/person/<%= result.person.id %>">View Profile</a>
+          <a class="btn btn-outline" href="/admin/onboard">Onboard Another</a>
+        </div>
+      </div>
+    <% } else { %>
+      <form method="POST" action="/admin/onboard" id="onboardForm">
+        <h4 class="section-subhead" style="text-align:left;margin-top:0;">Profile</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" name="firstName" id="onboardFirstName" required value="<%= fd.firstName || '' %>">
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" name="lastName" id="onboardLastName" required value="<%= fd.lastName || '' %>">
+          </div>
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" name="age" value="<%= fd.age || '' %>">
+          </div>
+          <div class="form-group">
+            <label>Photo URL</label>
+            <input type="text" name="imageUrl" value="<%= fd.imageUrl || '' %>">
+          </div>
+          <div class="form-group">
+            <label>Badge Number</label>
+            <input type="number" name="badgeNumber" value="<%= fd.badgeNumber || '' %>">
+          </div>
+          <div class="form-group">
+            <label>Job Title</label>
+            <input type="text" name="rankTitle" placeholder="e.g. Parking Officer" value="<%= fd.rankTitle || '' %>">
+          </div>
+          <div class="form-group">
+            <label>Department (type to create new)</label>
+            <input type="text" name="departmentName" list="onboard-dept-list" value="<%= fd.departmentName || '' %>">
+            <datalist id="onboard-dept-list">
+              <% departments.forEach(function(d){ %><option value="<%= d.name %>"><% }); %>
+            </datalist>
+          </div>
+        </div>
+
+        <h4 class="section-subhead" style="text-align:left;">Login Account</h4>
+        <div class="form-group checkbox" style="margin-bottom:14px;">
+          <input type="checkbox" name="createLogin" id="onboardCreateLogin" <%= fd.createLogin === undefined || fd.createLogin === 'on' ? 'checked' : '' %>>
+          <label for="onboardCreateLogin" style="margin:0;">Create a login account for this person now</label>
+        </div>
+        <div class="form-grid" id="onboardLoginFields">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" id="onboardUsername" placeholder="auto-filled from name, editable" value="<%= fd.username || '' %>">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select name="role">
+              <option value="staff" <%= fd.role !== 'admin' ? 'selected' : '' %>>Traffic Officer &mdash; citations &amp; records</option>
+              <option value="admin" <%= fd.role === 'admin' ? 'selected' : '' %>>Administrator &mdash; full access</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Onboard Employee</button>
+        <a class="btn btn-outline" href="/admin">Cancel</a>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var checkbox = document.getElementById('onboardCreateLogin');
+    var fields = document.getElementById('onboardLoginFields');
+    if (checkbox && fields) {
+      function sync() { fields.style.display = checkbox.checked ? 'grid' : 'none'; }
+      checkbox.addEventListener('change', sync);
+      sync();
+    }
+
+    // Suggest a username from the name once both are filled, but only while
+    // the officer hasn't typed their own — never clobber a manual edit.
+    var first = document.getElementById('onboardFirstName');
+    var last = document.getElementById('onboardLastName');
+    var username = document.getElementById('onboardUsername');
+    var usernameTouched = false;
+    if (username) {
+      username.addEventListener('input', function () { usernameTouched = true; });
+    }
+    function suggestUsername() {
+      if (!username || usernameTouched || username.value) return;
+      var f = (first.value || '').trim();
+      var l = (last.value || '').trim();
+      if (!f || !l) return;
+      username.value = (f[0] + l).toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+    if (first && last) {
+      first.addEventListener('blur', suggestUsername);
+      last.addEventListener('blur', suggestUsername);
+    }
+
+    var copyBtn = document.getElementById('copyCredentialsBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        var user = document.querySelector('.credentials-row strong');
+        var pass = document.getElementById('tempPasswordValue');
+        var text = 'Username: ' + (user ? user.textContent : '') + '\nTemporary Password: ' + (pass ? pass.textContent : '');
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            copyBtn.textContent = 'Copied!';
+            setTimeout(function () { copyBtn.textContent = 'Copy Username & Password'; }, 1500);
+          }).catch(function () {});
+        }
+      });
+    }
+  })();
+</script>
+
+<%- include('../partials/bottom') %>

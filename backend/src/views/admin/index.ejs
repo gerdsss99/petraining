@@ -1,16 +1,30 @@
 <%- include('../partials/top') %>
 
-<div class="panel">
+<div class="admin-quicknav">
+  <a href="#personnel-section">Personnel <span class="admin-quicknav-count"><%= personnel.length %></span></a>
+  <a href="#civilians-section">Civilians <span class="admin-quicknav-count"><%= civilians.length %></span></a>
+  <a href="#accounts-section">Login Accounts <span class="admin-quicknav-count"><%= accounts.length %></span></a>
+  <a href="#departments-section">Departments <span class="admin-quicknav-count"><%= departments.length %></span></a>
+  <a href="/admin/onboard" class="admin-quicknav-cta">+ Onboard New Employee</a>
+</div>
+
+<div class="panel" id="personnel-section">
   <div class="panel-header">
-    <span class="collapse-dot">&minus;</span> Training Profiles
-    <a href="/admin/people/new" class="btn btn-sm" style="margin-left:auto;">+ New Training Profile</a>
+    <span class="collapse-dot">&minus;</span> Personnel / Employees
+    <a href="/admin/onboard" class="btn btn-sm" style="margin-left:auto;">+ Onboard New Employee</a>
   </div>
-  <div class="panel-body <%= people.length ? '' : 'empty' %>">
-    <% if (!people.length) { %>No profiles yet.<% } else { %>
-      <table class="data-table">
-        <thead><tr><th>#</th><th>Name</th><th>Department</th><th>Title</th><th>Badge</th><th></th></tr></thead>
+  <div class="panel-body <%= personnel.length ? '' : 'empty' %>">
+    <% if (!personnel.length) { %>No personnel profiles yet.<% } else { %>
+      <div class="table-toolbar">
+        <input type="text" class="table-search" placeholder="Search personnel by name, department, title, badge..." data-target="personnelTable">
+      </div>
+      <table class="data-table" id="personnelTable" data-sortable>
+        <thead><tr>
+          <th data-sort="num">#</th><th data-sort="text">Name</th><th data-sort="text">Department</th>
+          <th data-sort="text">Title</th><th data-sort="num">Badge</th><th data-sort="none"></th>
+        </tr></thead>
         <tbody>
-          <% people.forEach(function(p){ %>
+          <% personnel.forEach(function(p){ %>
             <tr>
               <td>#<%= p.id %></td>
               <td><a href="/person/<%= p.id %>"><%= p.firstName %> <%= p.lastName %></a></td>
@@ -31,17 +45,54 @@
   </div>
 </div>
 
+<div class="panel" id="civilians-section">
+  <div class="panel-header">
+    <span class="collapse-dot">&minus;</span> Civilians
+    <a href="/admin/people/new-civilian" class="btn btn-sm" style="margin-left:auto;">+ New Civilian Profile</a>
+  </div>
+  <div class="panel-body <%= civilians.length ? '' : 'empty' %>">
+    <% if (!civilians.length) { %>No civilian profiles yet.<% } else { %>
+      <div class="table-toolbar">
+        <input type="text" class="table-search" placeholder="Search civilians by name..." data-target="civiliansTable">
+      </div>
+      <table class="data-table" id="civiliansTable" data-sortable>
+        <thead><tr><th data-sort="num">#</th><th data-sort="text">Name</th><th data-sort="none"></th></tr></thead>
+        <tbody>
+          <% civilians.forEach(function(p){ %>
+            <tr>
+              <td>#<%= p.id %></td>
+              <td><a href="/person/<%= p.id %>"><%= p.firstName %> <%= p.lastName %></a></td>
+              <td>
+                <a class="action-icon" href="/admin/people/<%= p.id %>/edit">Edit</a>
+                <form method="POST" action="/admin/people/<%= p.id %>?_method=DELETE" style="display:inline;" onsubmit="return confirm('Delete this profile and all its records?');">
+                  <button type="submit" class="action-icon danger" style="border:none;cursor:pointer;">Del</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
+
 <div class="grid-2">
-  <div class="panel">
+  <div class="panel" id="accounts-section">
     <div class="panel-header"><span class="collapse-dot">&minus;</span> Login Accounts</div>
     <div class="panel-body">
       <p class="text-muted" style="margin:-2px 0 14px; font-size:12px; line-height:1.6;">
         <strong>Traffic Officers</strong> can search records, view profiles, issue citations, and file infraction
         reports. They cannot create civilian profiles or open this Admin Panel &mdash; that stays
-        <strong>Administrator</strong>-only. Create civilian profiles separately, above, under Training Profiles.
+        <strong>Administrator</strong>-only. Every account created here (or via Onboard New Employee) must set its
+        own password the first time it signs in.
       </p>
-      <table class="data-table">
-        <thead><tr><th>Username</th><th>Role</th><th>Linked Profile</th><th></th></tr></thead>
+      <% if (accounts.length) { %>
+        <div class="table-toolbar">
+          <input type="text" class="table-search" placeholder="Search accounts..." data-target="accountsTable">
+        </div>
+      <% } %>
+      <table class="data-table" id="accountsTable" data-sortable>
+        <thead><tr><th data-sort="text">Username</th><th data-sort="text">Role</th><th data-sort="text">Linked Profile</th><th data-sort="none"></th></tr></thead>
         <tbody>
           <% accounts.forEach(function(a){ %>
             <tr>
@@ -60,7 +111,7 @@
 
       <form class="inline-form" method="POST" action="/admin/accounts" style="margin-top:14px;">
         <div class="form-group"><label>Username</label><input type="text" name="username" required></div>
-        <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
+        <div class="form-group"><label>Initial Password</label><input type="password" name="password" required></div>
         <div class="form-group">
           <label>Role</label>
           <select name="role">
@@ -72,15 +123,19 @@
           <label>Linked Profile</label>
           <select name="employeeId">
             <option value="">— None —</option>
-            <% people.forEach(function(p){ %><option value="<%= p.id %>"><%= p.firstName %> <%= p.lastName %></option><% }); %>
+            <% personnel.forEach(function(p){ %><option value="<%= p.id %>"><%= p.firstName %> <%= p.lastName %></option><% }); %>
           </select>
         </div>
         <button type="submit" class="btn btn-sm">Add Account</button>
       </form>
+      <p class="text-muted" style="font-size:11px;margin:8px 0 0;">
+        Prefer <a href="/admin/onboard">Onboard New Employee</a> for a new hire &mdash; it creates the profile and
+        account together with a generated one-time password instead of one you type here.
+      </p>
     </div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="departments-section">
     <div class="panel-header"><span class="collapse-dot">&minus;</span> Departments</div>
     <div class="panel-body <%= departments.length ? '' : 'empty' %>">
       <% if (!departments.length) { %>
@@ -93,5 +148,58 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    // Click-to-sort table headers — used across every table on this page.
+    // Sorts the visible <tr> rows in place by the clicked column's text,
+    // numerically for data-sort="num" columns, alphabetically otherwise.
+    document.querySelectorAll('table[data-sortable]').forEach(function (table) {
+      var thead = table.querySelector('thead');
+      if (!thead) return;
+      var headers = Array.from(thead.querySelectorAll('th'));
+      headers.forEach(function (th, colIndex) {
+        var kind = th.getAttribute('data-sort');
+        if (!kind || kind === 'none') return;
+        th.classList.add('sortable-th');
+        th.addEventListener('click', function () {
+          var tbody = table.querySelector('tbody');
+          var rows = Array.from(tbody.querySelectorAll('tr'));
+          var asc = th.getAttribute('data-sort-dir') !== 'asc';
+          headers.forEach(function (h) { h.removeAttribute('data-sort-dir'); h.classList.remove('sorted-asc', 'sorted-desc'); });
+          th.setAttribute('data-sort-dir', asc ? 'asc' : 'desc');
+          th.classList.add(asc ? 'sorted-asc' : 'sorted-desc');
+          rows.sort(function (a, b) {
+            var av = (a.children[colIndex] && a.children[colIndex].textContent || '').trim();
+            var bv = (b.children[colIndex] && b.children[colIndex].textContent || '').trim();
+            if (kind === 'num') {
+              var an = parseFloat(av.replace(/[^0-9.\-]/g, ''));
+              var bn = parseFloat(bv.replace(/[^0-9.\-]/g, ''));
+              an = isNaN(an) ? -Infinity : an;
+              bn = isNaN(bn) ? -Infinity : bn;
+              return asc ? an - bn : bn - an;
+            }
+            return asc ? av.localeCompare(bv) : bv.localeCompare(av);
+          });
+          rows.forEach(function (r) { tbody.appendChild(r); });
+        });
+      });
+    });
+
+    // Live text-filter boxes — hides <tr> rows in the target table that
+    // don't contain the typed text anywhere in their cells.
+    document.querySelectorAll('.table-search').forEach(function (input) {
+      input.addEventListener('input', function () {
+        var table = document.getElementById(input.getAttribute('data-target'));
+        if (!table) return;
+        var q = input.value.trim().toLowerCase();
+        table.querySelectorAll('tbody tr').forEach(function (tr) {
+          var text = tr.textContent.toLowerCase();
+          tr.style.display = !q || text.indexOf(q) !== -1 ? '' : 'none';
+        });
+      });
+    });
+  })();
+</script>
 
 <%- include('../partials/bottom') %>

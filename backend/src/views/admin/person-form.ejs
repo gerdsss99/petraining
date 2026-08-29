@@ -1,9 +1,21 @@
 <%- include('../partials/top') %>
+<%
+  var isCivilianMode = (typeof mode !== 'undefined' && mode === 'civilian');
+  var formAction = person ? ('/admin/people/' + person.id + '?_method=PUT') : (isCivilianMode ? '/admin/people/civilian' : '/admin/people');
+  var headerText = person ? ('Edit ' + (person.isPersonnel ? 'Employee' : 'Civilian') + ' Profile') : (isCivilianMode ? 'New Civilian Profile' : 'New Training Profile');
+%>
 
 <div class="panel">
-  <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= person ? 'Edit Training Profile' : 'New Training Profile' %></div>
+  <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= headerText %></div>
   <div class="panel-body">
-    <form method="POST" action="<%= person ? ('/admin/people/' + person.id + '?_method=PUT') : '/admin/people' %>">
+    <% if (isCivilianMode) { %>
+      <p class="text-muted" style="margin:-2px 0 16px; font-size:12.5px; line-height:1.6;">
+        Civilian profiles are training records only &mdash; no badge, rank, department, or login access. For a
+        department employee (with a badge and optionally a login account), use
+        <a href="/admin/onboard">Onboard New Employee</a> instead.
+      </p>
+    <% } %>
+    <form method="POST" action="<%= formAction %>">
       <div class="form-grid">
         <div class="form-group">
           <label>First Name</label>
@@ -21,25 +33,27 @@
           <label>Photo URL</label>
           <input type="text" name="imageUrl" value="<%= person && person.imageUrl ? person.imageUrl : '' %>">
         </div>
-        <div class="form-group">
-          <label>Badge Number</label>
-          <input type="number" name="badgeNumber" value="<%= person && person.badgeNumber ? person.badgeNumber : '' %>">
-        </div>
-        <div class="form-group">
-          <label>Job Title</label>
-          <input type="text" name="rankTitle" value="<%= person && person.rankTitle ? person.rankTitle : '' %>" placeholder="e.g. Parking Officer">
-        </div>
-        <div class="form-group">
-          <label>Department (type to create new)</label>
-          <input type="text" name="departmentName" list="dept-list" value="<%= person && person.departmentName ? person.departmentName : '' %>">
-          <datalist id="dept-list">
-            <% departments.forEach(function(d){ %><option value="<%= d.name %>"><% }); %>
-          </datalist>
-        </div>
-        <div class="form-group checkbox">
-          <input type="checkbox" name="isPersonnel" id="isPersonnel" <%= person && person.isPersonnel ? 'checked' : '' %>>
-          <label for="isPersonnel" style="margin:0;">This is department personnel/staff (leave unchecked for a training civilian)</label>
-        </div>
+        <% if (!isCivilianMode) { %>
+          <div class="form-group">
+            <label>Badge Number</label>
+            <input type="number" name="badgeNumber" value="<%= person && person.badgeNumber ? person.badgeNumber : '' %>">
+          </div>
+          <div class="form-group">
+            <label>Job Title</label>
+            <input type="text" name="rankTitle" value="<%= person && person.rankTitle ? person.rankTitle : '' %>" placeholder="e.g. Parking Officer">
+          </div>
+          <div class="form-group">
+            <label>Department (type to create new)</label>
+            <input type="text" name="departmentName" list="dept-list" value="<%= person && person.departmentName ? person.departmentName : '' %>">
+            <datalist id="dept-list">
+              <% departments.forEach(function(d){ %><option value="<%= d.name %>"><% }); %>
+            </datalist>
+          </div>
+          <div class="form-group checkbox">
+            <input type="checkbox" name="isPersonnel" id="isPersonnel" <%= person && person.isPersonnel ? 'checked' : '' %>>
+            <label for="isPersonnel" style="margin:0;">This is department personnel/staff (leave unchecked for a training civilian)</label>
+          </div>
+        <% } %>
       </div>
       <button type="submit" class="btn"><%= person ? 'Save Changes' : 'Create Profile' %></button>
       <a class="btn btn-outline" href="/admin">Cancel</a>

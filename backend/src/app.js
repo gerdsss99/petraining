@@ -6,7 +6,7 @@ const pgSession = require('connect-pg-simple')(session);
 const methodOverride = require('method-override');
 const { Pool } = require('pg');
 
-const { loadCurrentUser } = require('./middleware/auth');
+const { loadCurrentUser, requirePasswordChange } = require('./middleware/auth');
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -52,6 +52,7 @@ app.use(
 );
 
 app.use(loadCurrentUser);
+app.use(requirePasswordChange);
 
 // Every response gets access to a server clock string like the reference UI's top bar.
 app.use((req, res, next) => {

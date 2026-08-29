@@ -153,22 +153,48 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
 - **Wanted Database** — active wanted persons.
 - **Maps / Miscellaneous / Changelog** — placeholder pages, ready for you
   to extend.
-- **Admin panel** (visible only to `admin`-role accounts) — create/edit/
-  delete training profiles and every record type hanging off them, plus
-  manage login accounts and departments. Login Accounts are either
-  **Traffic Officer** (`staff` role — search records, view profiles, issue
-  citations, file infraction reports) or **Administrator** (`admin` role —
-  everything a Traffic Officer can do, plus this Admin panel: creating
-  civilian/personnel profiles, editing every record type, and managing
-  accounts). Traffic Officer accounts have no path to the Admin panel or to
-  creating new civilians — that stays deliberately separate, in its own
-  "Training Profiles" panel here.
+- **Admin panel** (visible only to `admin`-role accounts) — a sticky
+  quick-nav bar (Personnel / Civilians / Login Accounts / Departments, each
+  with a live count) jumps straight to a section, and every table has its
+  own search box (filters rows as you type) and click-to-sort column
+  headers (click again to reverse). Login Accounts are either **Traffic
+  Officer** (`staff` role — search records, view profiles, issue citations,
+  file infraction reports) or **Administrator** (`admin` role — everything a
+  Traffic Officer can do, plus this Admin panel: creating civilian/personnel
+  profiles, editing every record type, and managing accounts). Traffic
+  Officer accounts have no path to the Admin panel or to creating new
+  civilians.
+- **Onboard New Employee** (Admin panel → Personnel, or `/admin/onboard`) —
+  the one-stop flow for bringing on a new officer: creates their personnel
+  profile and (optionally, via a checkbox) their login account in a single
+  form, instead of two separate trips through Training Profiles and Login
+  Accounts. When a login account is created, a random one-time temporary
+  password is generated and shown exactly once on the result page — copy it
+  to hand to the new officer, because the app never shows or logs it again.
+  **New Civilian Profile** (Admin panel → Civilians → `+ New Civilian
+  Profile`) is the separate, shorter flow for a civilian record with no
+  badge, rank, department, or login account — civilians and personnel are
+  split into their own tables on the Admin panel so they're never mixed
+  together.
+- **Forced password change on first login** — every login account created
+  with a temporary/initial password (via Onboard New Employee, or the
+  standalone "Add Account" form in the Login Accounts panel) is flagged to
+  require a password change. That account can sign in, but every other page
+  redirects to **Change Password** until it sets its own — there's no way
+  around it. Any signed-in account can also change its password voluntarily
+  at any time from the key icon in the top bar.
 - **Deleting a record from a profile page** — admins get a small trash-can
   button next to Arrest Warrants, Outstanding/Paid Citations, and each
   Infraction Record row, right on the person's own profile page (no need to
   detour through the Admin panel's edit form). It posts to the same
   admin-only delete route the Admin panel uses, so a Traffic Officer account
   never sees these buttons and can't hit the route directly either.
+- **Phone-friendly** — the whole app is responsive down to a small phone
+  screen: the sidebar collapses into a drawer (hamburger button in the top
+  bar), wide tables scroll horizontally within their own card instead of
+  the page, and the top bar sheds non-essential buttons at tablet widths so
+  the "Log out" button (and the Change Password key icon) always stay on
+  screen.
 
 ## Project layout
 
@@ -192,10 +218,13 @@ backend/
 
 ## Adding more training profiles
 
-Log in as `admin`, go to **Admin Panel → + New Profile**, fill in the
-basics, save, then use the edit page's per-section forms to attach
-vehicles, citations, licenses, warrants, a wanted entry, and so on. Nothing
-here is real data — make up whatever your training scenarios need.
+Log in as `admin`. For a civilian, go to **Admin Panel → Civilians → + New
+Civilian Profile**. For department personnel, use **Admin Panel →
+Personnel → + Onboard New Employee** (creates the profile and, optionally,
+a login account together). Either way, fill in the basics, save, then use
+the edit page's per-section forms to attach vehicles, citations, licenses,
+warrants, a wanted entry, and so on. Nothing here is real data — make up
+whatever your training scenarios need.
 
 ## Notes
 
