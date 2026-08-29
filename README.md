@@ -36,8 +36,10 @@ Your friend was right — this is exactly what Portainer calls a **Stack**
    container waits for Postgres, creates the database tables, and (because
    `SEED_ON_START=true` by default) loads the demo characters.
 4. Visit `http://<your-host>:8080` (or whatever `HOST_PORT` you set).
-   Log in with `admin / admin123` or `panand / training123` — **change
-   these passwords or delete these accounts once you've made your own**.
+   Log in with `admin / admin123` or `panand / training123` (Priya Anand's
+   badge number, `100002`, works in place of her username too — see below)
+   — **change these passwords or delete these accounts once you've made
+   your own**.
 
 If you'd rather test locally first:
 
@@ -196,6 +198,13 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
   also participate in the normal offense-count labeling described below
   (`(Second Offense)`, `(Third Offense)`, ...) exactly like any other IC 418
   filed against that person later.
+- **Sign in with a username or a badge number** — the login form's single
+  identifier field accepts either. If it's typed as a plain number, it's
+  matched against the badge number of the Employee that account is linked
+  to (same password either way); otherwise it's matched as a username, same
+  as before. An account with no linked Employee, or a linked Employee with
+  no badge number, still signs in fine with just its username — the badge
+  check simply never matches anything for it.
 - **Forced password change on first login** — every login account created
   with a temporary/initial password (via Onboard New Employee, or the
   standalone "Add Account" form in the Login Accounts panel) is flagged to

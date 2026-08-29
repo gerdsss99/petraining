@@ -280,7 +280,7 @@ async function main() {
   ]);
 
   console.log('Seed complete.');
-  console.log('Login with admin / admin123  (or)  panand / training123');
+  console.log('Login with admin / admin123  (or)  panand / training123  (or)  badge 100002 / training123');
 }
 
 main()

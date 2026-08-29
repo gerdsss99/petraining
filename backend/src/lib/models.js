@@ -431,6 +431,27 @@ async function findAccountByUsername(username) {
   return one('SELECT * FROM "Account" WHERE "username" = $1', [username]);
 }
 
+// Login also accepts an Employee's badge number in place of a username (the
+// same password either way) — a lot of real MDC-style tools let officers do
+// this, and it's a small convenience for people who remember their badge
+// number more readily than whatever username they were issued. "badgeNumber"
+// is an INTEGER column, so a non-numeric login attempt (a normal username)
+// must never reach it as a comparison value or Postgres throws a type error;
+// $2 is only ever a parsed integer or NULL, guarded below.
+async function findAccountByUsernameOrBadge(identifier) {
+  const badge = /^\d+$/.test(String(identifier || '').trim())
+    ? parseInt(identifier, 10)
+    : null;
+  return one(
+    `SELECT a.* FROM "Account" a
+     LEFT JOIN "Employee" e ON e."id" = a."employeeId"
+     WHERE a."username" = $1 OR ($2::INTEGER IS NOT NULL AND e."badgeNumber" = $2)
+     ORDER BY (a."username" = $1) DESC
+     LIMIT 1`,
+    [identifier, badge]
+  );
+}
+
 async function findAccountById(id) {
   const account = await one('SELECT * FROM "Account" WHERE "id" = $1', [id]);
   if (!account) return null;
@@ -499,6 +520,7 @@ module.exports = {
   listDepartments,
   upsertDepartmentByName,
   findAccountByUsername,
+  findAccountByUsernameOrBadge,
   findAccountById,
   listAccounts,
   createAccount,

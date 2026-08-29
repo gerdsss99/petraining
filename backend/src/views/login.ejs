@@ -15,15 +15,15 @@
           <img src="/img/los-santos-seal.png" alt="City of Los Santos seal">
         </div>
         <h1>DPW Parking Enforcement</h1>
-        <p class="subtitle">Mobile Data Computer Training</p>
+        <p class="subtitle">Mobile Data Computer</p>
         <div class="login-side-rule"></div>
-        <p class="login-side-note">Don't have access? Ask your FTO for assistance.</p>
+        <p class="login-side-note">Restricted access system for authorised agency personnel. All lookups are logged.</p>
       </div>
       <div class="login-form-side">
         <h2>Sign In</h2>
-        <p class="login-form-hint">Enter your issued credentials to continue.</p>
+        <p class="login-form-hint">Enter your issued credentials to continue. Your username or badge number both work.</p>
 
-        <div class="training-banner">&#9888; DPW Parking Enforcement MDC Training Site &mdash; every profile, citation, and record here is completely fictional and made up for onboarding practice. Nothing on this site is real.</div>
+        <div class="training-banner">&#9888; DPW Parking Enforcement MDC Training Site &mdash; every profile, citation, and record here is completely fake and made up for onboarding practice. </div>
 
         <% if (error) { %>
           <div class="login-error"><%= error %></div>
@@ -31,8 +31,8 @@
 
         <form method="POST" action="/login">
           <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required autofocus autocomplete="username">
+            <label for="username">Username or Badge #</label>
+            <input type="text" id="username" name="username" required autofocus autocomplete="username" placeholder="Username or badge number">
           </div>
           <div class="form-group">
             <label for="password">Password</label>
@@ -40,6 +40,10 @@
           </div>
           <button type="submit" class="btn" style="width:100%;">Sign In</button>
         </form>
+
+        <div class="login-demo-hint">
+          <strong>Demo logins</strong> &mdash; admin / admin123 &middot; panand / training123 (badge 100002 also works)
+        </div>
       </div>
     </div>
   </div>

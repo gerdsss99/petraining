@@ -12,7 +12,7 @@ router.get('/login', (req, res) => {
 router.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    const account = await models.findAccountByUsername(username?.trim());
+    const account = await models.findAccountByUsernameOrBadge(username?.trim());
 
     if (!account || !(await bcrypt.compare(password || '', account.passwordHash))) {
       return res.status(401).render('login', {
