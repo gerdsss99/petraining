@@ -9,9 +9,10 @@
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="sidebar-brand">
-        <img src="/img/seal.svg" alt="Seal">
-        <span><%= appName %></span>
+      <div class="sidebar-brand"><%= appName %></div>
+      <div class="sidebar-seal">
+        <img src="/img/dpw-seal.png" alt="DPW Parking Enforcement seal">
+        <img src="/img/los-santos-seal.png" alt="City of Los Santos seal">
       </div>
       <ul class="sidebar-nav">
         <li><a href="/" class="<%= currentPath === '/' ? 'active' : '' %>"><span class="nav-icon">&#9638;</span> Dashboard</a></li>
@@ -50,7 +51,7 @@
       <div class="topbar">
         <div class="topbar-left">
           <% if (currentUser) { %>
-            <span class="topbar-role"><%= currentUser.employee ? currentUser.employee.rankTitle || 'Staff' : (currentUser.role === 'admin' ? 'Administrator' : 'Staff') %>
+            <span class="topbar-role"><%= currentUser.employee ? currentUser.employee.rankTitle || 'Staff' : (currentUser.role === 'admin' ? 'Administrator' : 'Traffic Officer') %>
               &mdash; <%= currentUser.employee ? currentUser.employee.firstName + ' ' + currentUser.employee.lastName : currentUser.username %></span>
             <span class="badge-id">#<%= currentUser.employee ? currentUser.employee.badgeNumber : currentUser.id %></span>
           <% } %>

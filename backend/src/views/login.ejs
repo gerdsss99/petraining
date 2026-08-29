@@ -9,24 +9,42 @@
 <body>
   <div class="login-wrap">
     <div class="login-card">
-      <img src="/img/seal.svg" alt="Seal">
-      <h1><%= appName %></h1>
-      <p class="subtitle"><%= cityName %></p>
-      <div class="training-banner">Training environment &mdash; fictional data only.</div>
-      <% if (error) { %>
-        <div class="login-error"><%= error %></div>
-      <% } %>
-      <form method="POST" action="/login">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" name="username" required autofocus>
+      <div class="login-side">
+        <div class="login-side-logos">
+          <img src="/img/dpw-seal.png" alt="DPW Parking Enforcement seal">
+          <img src="/img/los-santos-seal.png" alt="City of Los Santos seal">
         </div>
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" required>
+        <h1>DPW Parking Enforcement</h1>
+        <p class="subtitle">Mobile Data Computer</p>
+        <div class="login-side-rule"></div>
+        <p class="login-side-note">Restricted access system for authorised agency personnel. All lookups are logged.</p>
+      </div>
+      <div class="login-form-side">
+        <h2>Sign In</h2>
+        <p class="login-form-hint">Enter your issued credentials to continue.</p>
+
+        <div class="training-banner">&#9888; DPW Parking Enforcement MDC Training Site &mdash; every profile, citation, and record here is completely fictional and made up for onboarding practice. Nothing on this site is real, and it is not affiliated with the City of Los Santos, GTA World, or Rockstar Games / Take-Two Interactive.</div>
+
+        <% if (error) { %>
+          <div class="login-error"><%= error %></div>
+        <% } %>
+
+        <form method="POST" action="/login">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autofocus autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn" style="width:100%;">Sign In</button>
+        </form>
+
+        <div class="login-demo-hint">
+          <strong>Demo logins</strong> &mdash; admin / admin123 &middot; panand / training123
         </div>
-        <button type="submit" class="btn" style="width:100%;">Sign In</button>
-      </form>
+      </div>
     </div>
   </div>
 </body>

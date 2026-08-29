@@ -214,6 +214,40 @@ async function findPenalCodeByCode(raw) {
   return null;
 }
 
+// How many times this exact penal code has already been filed against this
+// person, across every past Infraction Report — the count that drives the
+// "(Second Offense)" / "(Third or More Offense)" suffix. Codes that never
+// resolved to a PenalCode row (a typo, a code not in the reference table)
+// can't be counted this way, so callers should treat penalCodeId-less codes
+// as always a first offense.
+async function countPriorOffenses(personId, penalCodeId) {
+  if (!penalCodeId) return 0;
+  const row = await one(
+    `SELECT COUNT(*)::int AS count
+     FROM "InfractionCode" ic
+     JOIN "Infraction" i ON i."id" = ic."infractionId"
+     WHERE i."personId" = $1 AND ic."penalCodeId" = $2`,
+    [personId, penalCodeId]
+  );
+  return row ? row.count : 0;
+}
+
+// Builds the final "IC 418 — Prohibited Parking (Second Offense)" label for
+// one code being attached to a new report, from a clean title (the reports
+// site's own offense wording is stripped out before this ever runs — see
+// narrativeParser.stripOffenseSuffix) plus this person's real prior count
+// for that code. A first offense gets no qualifier at all, matching how the
+// reference codes read when there's nothing to flag.
+async function buildInfractionCodeLabel(personId, c) {
+  if (!c.rawCode) return c.title; // no structured code — nothing to count or label with "IC ###"
+  const base = `IC ${c.rawCode} — ${c.title}`;
+  const priorCount = await countPriorOffenses(personId, c.penalCodeId);
+  const ordinal = priorCount + 1;
+  if (ordinal <= 1) return base;
+  if (ordinal === 2) return `${base} (Second Offense)`;
+  return `${base} (Third or More Offense)`;
+}
+
 // Creates an Infraction row plus its attached InfractionCode rows in one
 // go. `codes` is an array of { penalCodeId, codeLabel, fineAmount }.
 async function createInfractionReport(data) {
@@ -234,11 +268,34 @@ async function createInfractionReport(data) {
     ]
   );
 
+  const childIds = [];
   for (const c of data.codes) {
     await pool.query(
       `INSERT INTO "InfractionCode" ("infractionId","penalCodeId","codeLabel","fineAmount","reasonText") VALUES ($1,$2,$3,$4,$5)`,
       [infraction.id, c.penalCodeId || null, c.codeLabel, c.fineAmount || 0, c.reasonText || null]
     );
+
+    // Alongside the InfractionCode line (used to render the report itself),
+    // log a matching entry in the person's own Infraction Record for this
+    // specific code — e.g. "IC 418. Prohibited Parking" — the same way the
+    // Registered Vehicles / DMV workflow lists each violation individually.
+    // Without this, a multi-code report only ever showed up as the single
+    // "Infraction Report" row and its codes never appeared as their own
+    // Infraction Record entries.
+    const child = await one(
+      `INSERT INTO "Infraction" ("personId","type","remark","status","timestamp") VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+      [data.personId, 'Infraction', c.codeLabel.replace(/\s*—\s*/, '. '), data.status, infraction.timestamp]
+    );
+    childIds.push(child.id);
+  }
+
+  // The report row's own remark doesn't repeat the code text (that's what
+  // the child rows above are for) — it just points at them, "Infraction #7,
+  // Infraction #8", the same way the report references its own line items
+  // everywhere else in the app.
+  if (childIds.length) {
+    infraction.remark = childIds.map((cid) => `Infraction #${cid}`).join(', ');
+    await pool.query('UPDATE "Infraction" SET "remark" = $1 WHERE "id" = $2', [infraction.remark, infraction.id]);
   }
 
   return infraction;
@@ -387,6 +444,8 @@ module.exports = {
   getVehicleFull,
   listPenalCodes,
   findPenalCodeByCode,
+  countPriorOffenses,
+  buildInfractionCodeLabel,
   createInfractionReport,
   getInfractionFull,
   createCitation,

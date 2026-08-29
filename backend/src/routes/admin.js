@@ -254,7 +254,15 @@ router.delete('/:resource/:id/for/:personId', async (req, res, next) => {
     if (!config) return res.status(404).render('error', { title: 'Not Found', message: 'Unknown resource.' });
 
     await models.deleteRow(config.table, Number(req.params.id));
-    res.redirect(`/admin/people/${req.params.personId}/edit`);
+
+    // Delete buttons on the person profile page (admin-only, see profile.ejs)
+    // pass ?returnTo=/person/:id so the admin lands back where they were
+    // instead of the Admin panel's edit form. Only a same-site path is ever
+    // honored, so this can't be used as an open redirect.
+    const returnTo = typeof req.query.returnTo === 'string' && req.query.returnTo.startsWith('/')
+      ? req.query.returnTo
+      : `/admin/people/${req.params.personId}/edit`;
+    res.redirect(returnTo);
   } catch (err) {
     next(err);
   }

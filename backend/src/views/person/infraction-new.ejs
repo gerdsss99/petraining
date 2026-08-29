@@ -13,7 +13,8 @@
         <div class="pill-row">
           <div class="pill-field">
             <label>Location</label>
-            <input class="pill-input pill-teal" type="text" name="location" placeholder="Select location">
+            <button type="button" class="pill-btn pill-teal location-btn" id="btnLocation">Select location</button>
+            <input type="hidden" name="location" id="locationValue" value="">
           </div>
           <div class="pill-field">
             <label>Status</label>
@@ -38,11 +39,6 @@
             <button type="button" class="pill-btn pill-teal" id="btnPenalCode">&#128295; PENAL CODE</button>
             <button type="button" class="pill-btn pill-green" id="btnAddInfraction">&#10010; INFRACTION</button>
           </div>
-          <datalist id="penal-code-options">
-            <% penalCodes.forEach(function(pc){ %>
-              <option value="IC <%= pc.code %>">IC <%= pc.code %> — <%= pc.title %> ($<%= pc.fineAmount %>)</option>
-            <% }); %>
-          </datalist>
           <div class="infraction-code-rows" id="infractionCodeRows"></div>
           <p class="text-muted" style="font-size:12px;margin:10px 0 0;">
             Or just paste the whole report into the narrative below — penal codes, fines, and evidence photos in
@@ -55,12 +51,31 @@
           <div class="narrative-toolbar">
             <button type="button" data-wrap="strong" title="Bold"><strong>B</strong></button>
             <button type="button" data-wrap="u" title="Underline"><u>U</u></button>
-            <button type="button" data-wrap="em" title="Italic"><em>I</em></button>
+            <button type="button" data-wrap="s" title="Strikethrough"><s>S</s></button>
+            <div class="toolbar-dropdown" id="headingDropdown">
+              <button type="button" title="Text style">A &#9662;</button>
+              <div class="toolbar-dropdown-menu" id="headingMenu">
+                <button type="button" data-wrap="h4">Heading</button>
+                <button type="button" data-wrap="em">Emphasis</button>
+                <button type="button" data-clear="1">Clear formatting</button>
+              </div>
+            </div>
+            <span class="toolbar-sep"></span>
             <button type="button" data-block="ul" title="Bulleted list">&#8226; List</button>
             <button type="button" data-block="ol" title="Numbered list">1. List</button>
+            <span class="toolbar-sep"></span>
             <button type="button" data-wrap='a href=""' title="Link">&#128279;</button>
-            <button type="button" data-insert="img" title="Insert image">&#128247; Image</button>
-            <button type="button" id="btnPreviewToggle" title="Toggle rendered preview">Preview</button>
+            <button type="button" data-insert="img" title="Insert image">&#128247;</button>
+            <button type="button" data-insert="video" title="Insert video">&#127909;</button>
+            <span class="toolbar-sep"></span>
+            <button type="button" id="btnPreviewToggle" title="Toggle rendered preview">&lt;/&gt;</button>
+            <button type="button" id="btnHelp" title="Formatting help">?</button>
+          </div>
+          <div class="narrative-help-box" id="narrativeHelp">
+            Paste a whole report straight from the reports site and its <strong>Citation(s):</strong> /
+            <strong>Citation Reason(s):</strong> lists and evidence images are picked up automatically. Writing one
+            by hand instead? Use the toolbar buttons above, or plain HTML tags — <code>&lt;strong&gt;</code>,
+            <code>&lt;u&gt;</code>, <code>&lt;ul&gt;&lt;li&gt;</code>, <code>&lt;img src="..."&gt;</code>.
           </div>
           <textarea class="narrative-source" name="narrative" id="narrativeInput" required
             placeholder="Paste the report from the reports site here, or write one in plain text / HTML..."></textarea>
@@ -78,18 +93,159 @@
   </div>
 </div>
 
+<!-- Interactive location picker. This is an original, fictional schematic of
+     Los Santos drawn for this training tool (see the SVG below) — not a
+     copy of any real map or game asset — just enough geography to match the
+     street names already used in the seed data, so a pin drop resolves to
+     something like "Innocence Boulevard, Downtown Los Santos". -->
+<div class="modal-overlay" id="mapModalOverlay" style="display:none; z-index: 60;">
+  <div class="modal-card map-modal-card">
+    <div class="modal-card-header">
+      Add Location
+      <a href="#" class="modal-close" id="mapModalClose" title="Close">&times;</a>
+    </div>
+    <div class="modal-card-body">
+      <div class="map-wrap" id="mapWrap">
+        <div class="map-zoom-controls">
+          <button type="button" id="mapZoomIn" title="Zoom in">+</button>
+          <button type="button" id="mapZoomOut" title="Zoom out">&minus;</button>
+        </div>
+        <div class="map-inner" id="mapInner">
+          <svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="cityBlocks" width="58" height="58" patternUnits="userSpaceOnUse">
+                <rect width="58" height="58" fill="#c7cdd6"/>
+                <rect x="4" y="4" width="50" height="50" fill="#d7dce3"/>
+              </pattern>
+            </defs>
+            <rect width="1000" height="700" fill="#dfe3ea"/>
+            <path d="M 760,0 L 1000,0 L 1000,700 L 700,700 Q 636,560 702,430 Q 762,300 700,150 Z" fill="#8fc7ea"/>
+            <path d="M0,0 L300,0 Q230,95 265,185 Q180,225 90,165 Q30,125 0,145 Z" fill="#a9d6a0"/>
+            <ellipse cx="120" cy="75" rx="55" ry="30" fill="#93c988"/>
+            <ellipse cx="205" cy="135" rx="45" ry="26" fill="#93c988"/>
+            <path d="M540,620 Q640,580 760,620 L760,700 L540,700 Z" fill="#a9d6a0"/>
+
+            <rect x="230" y="140" width="380" height="300" fill="url(#cityBlocks)" stroke="#b7bec9" stroke-width="2"/>
+            <rect x="70" y="380" width="220" height="180" fill="#e4dcb8" stroke="#cabf8f" stroke-width="2"/>
+            <g fill="#cdbf8a">
+              <rect x="100" y="410" width="60" height="40"/><rect x="180" y="410" width="60" height="40"/>
+              <rect x="100" y="470" width="60" height="40"/><rect x="180" y="470" width="60" height="40"/>
+            </g>
+            <rect x="330" y="460" width="220" height="160" fill="#efe6cf" stroke="#dccfa9" stroke-width="2"/>
+
+            <g stroke="#fff" stroke-width="6">
+              <line x1="0" y1="350" x2="1000" y2="350"/>
+              <line x1="420" y1="0" x2="420" y2="700"/>
+            </g>
+
+            <g font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#3a4250" text-anchor="middle">
+              <circle cx="300" cy="260" r="6" fill="#2f6fed"/>
+              <text x="300" y="245">Innocence Blvd</text>
+              <circle cx="560" cy="200" r="6" fill="#2f6fed"/>
+              <text x="560" y="185">Mission Row</text>
+              <circle cx="640" cy="280" r="6" fill="#2f6fed"/>
+              <text x="640" y="303">Sinner Street</text>
+              <circle cx="190" cy="470" r="6" fill="#2f6fed"/>
+              <text x="190" y="455">Warehouse Row</text>
+              <circle cx="430" cy="520" r="6" fill="#2f6fed"/>
+              <text x="430" y="543">Fictional Ave</text>
+              <circle cx="800" cy="430" r="6" fill="#2f6fed"/>
+              <text x="800" y="415">Harbor District</text>
+              <circle cx="680" cy="560" r="6" fill="#2f6fed"/>
+              <text x="680" y="583">Green Hills</text>
+            </g>
+          </svg>
+        </div>
+        <svg class="map-pin" id="mapPin" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 0C5.8 0 0 5.8 0 13c0 9.75 13 21 13 21s13-11.25 13-21C26 5.8 20.2 0 13 0z" fill="#e5484d"/>
+          <circle cx="13" cy="13" r="5.5" fill="#fff"/>
+        </svg>
+        <div class="map-attribution">Training Map &middot; Los Santos Government</div>
+      </div>
+      <div class="map-selected-label" id="mapSelectedLabel">Click anywhere on the map to drop a pin.</div>
+    </div>
+    <div class="modal-card-footer">
+      <button type="button" class="btn-map-cancel" id="mapCancelBtn">&#10006; CANCEL</button>
+      <button type="button" class="btn-map-submit" id="mapSubmitBtn" disabled>&#10003; SUBMIT</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
+  var PENAL_CODES = <%- JSON.stringify(penalCodes.map(function (pc) { return { code: pc.code, title: pc.title }; })) %>;
+
   var rowsContainer = document.getElementById('infractionCodeRows');
+  var rowIdSeq = 0;
 
   function addRow() {
     rowsContainer.classList.add('show');
+    var rowId = 'codeRow' + (++rowIdSeq);
     var row = document.createElement('div');
     row.className = 'infraction-code-row';
     row.innerHTML =
-      '<input type="text" name="penalCode" list="penal-code-options" placeholder="Penal code, e.g. IC 410" class="code-input">' +
-      '<button type="button" class="btn btn-sm btn-danger row-remove" title="Remove">&times;</button>';
+      '<div class="code-select">' +
+        '<div class="code-select-bar">' +
+          '<span class="code-select-icon">&#128295;</span>' +
+          '<input type="text" class="code-select-input" placeholder="Infraction" autocomplete="off">' +
+          '<span class="code-select-caret">&#9662;</span>' +
+        '</div>' +
+        '<div class="code-dropdown"></div>' +
+      '</div>' +
+      '<input type="hidden" name="penalCode" class="code-hidden-value">' +
+      '<button type="button" class="row-remove" title="Remove">&times;</button>';
     rowsContainer.appendChild(row);
+    wireCodeSelect(row);
+  }
+
+  function wireCodeSelect(row) {
+    var bar = row.querySelector('.code-select-bar');
+    var input = row.querySelector('.code-select-input');
+    var dropdown = row.querySelector('.code-dropdown');
+    var hidden = row.querySelector('.code-hidden-value');
+
+    function renderResults(query) {
+      var q = (query || '').trim().toLowerCase();
+      var matches = PENAL_CODES.filter(function (pc) {
+        return !q || pc.code.indexOf(q) === 0 || pc.title.toLowerCase().indexOf(q) !== -1;
+      }).slice(0, 30);
+      if (!matches.length) {
+        dropdown.innerHTML = '<div class="code-dropdown-empty">No matching penal code.</div>';
+        return;
+      }
+      dropdown.innerHTML = matches.map(function (pc) {
+        return '<div class="code-dropdown-item" data-code="' + pc.code + '" data-title="' +
+          pc.title.replace(/"/g, '&quot;') + '"><span class="code-badge">' + pc.code +
+          '</span><span>' + pc.title + '</span></div>';
+      }).join('');
+    }
+
+    function open() {
+      renderResults(input.value);
+      dropdown.classList.add('open');
+      bar.classList.add('open');
+    }
+    function close() {
+      dropdown.classList.remove('open');
+      bar.classList.remove('open');
+    }
+
+    input.addEventListener('focus', open);
+    input.addEventListener('input', function () {
+      hidden.value = '';
+      open();
+    });
+    dropdown.addEventListener('mousedown', function (e) {
+      var item = e.target.closest('.code-dropdown-item');
+      if (!item) return;
+      e.preventDefault();
+      input.value = 'IC ' + item.getAttribute('data-code') + ' — ' + item.getAttribute('data-title');
+      hidden.value = 'IC ' + item.getAttribute('data-code');
+      close();
+    });
+    document.addEventListener('click', function (e) {
+      if (!row.contains(e.target)) close();
+    });
   }
 
   document.getElementById('btnPenalCode').addEventListener('click', function () {
@@ -106,7 +262,7 @@
   // Toolbar: wrap/insert simple HTML around the current textarea selection.
   var narrative = document.getElementById('narrativeInput');
 
-  document.querySelectorAll('.narrative-toolbar button[data-wrap]').forEach(function (btn) {
+  document.querySelectorAll('.narrative-toolbar > button[data-wrap], .toolbar-dropdown-menu button[data-wrap]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var tag = btn.getAttribute('data-wrap');
       var openTag = '<' + tag + '>';
@@ -117,6 +273,29 @@
       narrative.focus();
       updateDetected();
     });
+  });
+
+  document.querySelectorAll('.toolbar-dropdown-menu button[data-clear]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var start = narrative.selectionStart, end = narrative.selectionEnd;
+      var val = narrative.value;
+      var selected = val.slice(start, end).replace(/<[^>]+>/g, '');
+      narrative.value = val.slice(0, start) + selected + val.slice(end);
+      narrative.focus();
+      updateDetected();
+    });
+  });
+
+  // Small "A" text-style dropdown in the toolbar.
+  var headingDropdown = document.getElementById('headingDropdown');
+  var headingMenu = document.getElementById('headingMenu');
+  headingDropdown.querySelector('button').addEventListener('click', function (e) {
+    e.stopPropagation();
+    headingMenu.classList.toggle('open');
+  });
+  headingMenu.addEventListener('click', function () { headingMenu.classList.remove('open'); });
+  document.addEventListener('click', function (e) {
+    if (!headingDropdown.contains(e.target)) headingMenu.classList.remove('open');
   });
 
   document.querySelectorAll('.narrative-toolbar button[data-block]').forEach(function (btn) {
@@ -142,6 +321,18 @@
     });
   });
 
+  document.querySelectorAll('.narrative-toolbar button[data-insert="video"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var url = prompt('Video URL:');
+      if (!url) return;
+      var start = narrative.selectionStart;
+      var snippet = '<video src="' + url + '" controls style="max-width:100%"></video>';
+      narrative.value = narrative.value.slice(0, start) + snippet + narrative.value.slice(start);
+      narrative.focus();
+      updateDetected();
+    });
+  });
+
   var preview = document.getElementById('narrativePreview');
   document.getElementById('btnPreviewToggle').addEventListener('click', function () {
     if (preview.style.display === 'none') {
@@ -150,6 +341,11 @@
     } else {
       preview.style.display = 'none';
     }
+  });
+
+  var helpBox = document.getElementById('narrativeHelp');
+  document.getElementById('btnHelp').addEventListener('click', function () {
+    helpBox.classList.toggle('open');
   });
 
   function updateDetected() {
@@ -163,6 +359,146 @@
   }
   narrative.addEventListener('input', updateDetected);
   narrative.addEventListener('paste', function () { setTimeout(updateDetected, 30); });
+
+  // --- Interactive location map -----------------------------------------
+  var ZONES = [
+    { x: 300, y: 260, label: 'Innocence Boulevard, Downtown Los Santos' },
+    { x: 560, y: 200, label: 'Mission Row' },
+    { x: 640, y: 280, label: 'Sinner Street, Mission Row' },
+    { x: 190, y: 470, label: 'Warehouse Row, Los Santos' },
+    { x: 430, y: 520, label: 'Fictional Ave, Los Santos' },
+    { x: 800, y: 430, label: 'Harbor District, Los Santos' },
+    { x: 680, y: 560, label: 'Green Hills, Los Santos' },
+  ];
+  var MAP_W = 1000, MAP_H = 700;
+
+  var overlay = document.getElementById('mapModalOverlay');
+  var wrap = document.getElementById('mapWrap');
+  var inner = document.getElementById('mapInner');
+  var pin = document.getElementById('mapPin');
+  var selectedLabelEl = document.getElementById('mapSelectedLabel');
+  var submitBtn = document.getElementById('mapSubmitBtn');
+  var locationBtn = document.getElementById('btnLocation');
+  var locationValue = document.getElementById('locationValue');
+
+  var scale = 1, tx = 0, ty = 0, minScale = 1;
+  var dragging = false, dragStartX = 0, dragStartY = 0, dragStartTx = 0, dragStartTy = 0, moved = 0;
+  var pinMap = null; // { x, y, label } in map (0-1000 / 0-700) space
+  var pendingLabel = null;
+
+  function applyTransform() {
+    inner.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+    updatePinScreenPos();
+  }
+
+  function clampPan() {
+    var w = MAP_W * scale, h = MAP_H * scale;
+    var minTx = Math.min(0, wrap.clientWidth - w), maxTx = 0;
+    var minTy = Math.min(0, wrap.clientHeight - h), maxTy = 0;
+    tx = Math.max(minTx, Math.min(maxTx, tx));
+    ty = Math.max(minTy, Math.min(maxTy, ty));
+  }
+
+  function updatePinScreenPos() {
+    if (!pinMap) { pin.classList.remove('placed'); return; }
+    var wrapRect = wrap.getBoundingClientRect();
+    var innerRect = inner.getBoundingClientRect();
+    var s = innerRect.width / MAP_W;
+    pin.style.left = ((innerRect.left - wrapRect.left) + pinMap.x * s) + 'px';
+    pin.style.top = ((innerRect.top - wrapRect.top) + pinMap.y * s) + 'px';
+    pin.classList.add('placed');
+  }
+
+  function fitMap() {
+    minScale = Math.max(wrap.clientWidth / MAP_W, wrap.clientHeight / MAP_H);
+    scale = minScale;
+    tx = (wrap.clientWidth - MAP_W * scale) / 2;
+    ty = (wrap.clientHeight - MAP_H * scale) / 2;
+    clampPan();
+    applyTransform();
+  }
+
+  function zoomBy(factor) {
+    var prevScale = scale;
+    scale = Math.max(minScale, Math.min(3, scale * factor));
+    // keep the wrap's visual center fixed while zooming
+    var cx = wrap.clientWidth / 2, cy = wrap.clientHeight / 2;
+    var mapX = (cx - tx) / prevScale, mapY = (cy - ty) / prevScale;
+    tx = cx - mapX * scale;
+    ty = cy - mapY * scale;
+    clampPan();
+    applyTransform();
+  }
+
+  document.getElementById('mapZoomIn').addEventListener('click', function () { zoomBy(1.25); });
+  document.getElementById('mapZoomOut').addEventListener('click', function () { zoomBy(1 / 1.25); });
+
+  wrap.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.map-zoom-controls')) return;
+    dragging = true; moved = 0;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    dragStartTx = tx; dragStartTy = ty;
+    wrap.classList.add('dragging');
+    wrap.setPointerCapture(e.pointerId);
+  });
+  wrap.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
+    moved = Math.max(moved, Math.abs(dx), Math.abs(dy));
+    tx = dragStartTx + dx; ty = dragStartTy + dy;
+    clampPan();
+    applyTransform();
+  });
+  wrap.addEventListener('pointerup', function (e) {
+    var wasDragging = dragging;
+    dragging = false;
+    wrap.classList.remove('dragging');
+    if (e.target.closest('.map-zoom-controls')) return;
+    if (wasDragging && moved < 6) placePinAt(e.clientX, e.clientY);
+  });
+
+  function nearestZone(x, y) {
+    var best = null, bestDist = Infinity;
+    ZONES.forEach(function (z) {
+      var d = Math.hypot(z.x - x, z.y - y);
+      if (d < bestDist) { bestDist = d; best = z; }
+    });
+    if (best && bestDist <= 110) return best.label;
+    return 'Custom Pin (' + Math.round(x) + ', ' + Math.round(y) + ')';
+  }
+
+  function placePinAt(clientX, clientY) {
+    var innerRect = inner.getBoundingClientRect();
+    var s = innerRect.width / MAP_W;
+    var x = (clientX - innerRect.left) / s;
+    var y = (clientY - innerRect.top) / s;
+    x = Math.max(0, Math.min(MAP_W, x));
+    y = Math.max(0, Math.min(MAP_H, y));
+    pendingLabel = nearestZone(x, y);
+    pinMap = { x: x, y: y };
+    updatePinScreenPos();
+    selectedLabelEl.innerHTML = 'Selected: <strong>' + pendingLabel + '</strong>';
+    submitBtn.disabled = false;
+  }
+
+  function openMapModal() {
+    overlay.style.display = 'flex';
+    requestAnimationFrame(fitMap);
+  }
+  function closeMapModal() { overlay.style.display = 'none'; }
+
+  locationBtn.addEventListener('click', openMapModal);
+  document.getElementById('mapModalClose').addEventListener('click', function (e) { e.preventDefault(); closeMapModal(); });
+  document.getElementById('mapCancelBtn').addEventListener('click', closeMapModal);
+  document.getElementById('mapSubmitBtn').addEventListener('click', function () {
+    if (!pendingLabel) return;
+    locationValue.value = pendingLabel;
+    locationBtn.textContent = pendingLabel;
+    closeMapModal();
+  });
+  window.addEventListener('resize', function () {
+    if (overlay.style.display !== 'none') fitMap();
+  });
 })();
 </script>
 

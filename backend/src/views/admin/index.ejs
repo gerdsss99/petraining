@@ -35,13 +35,18 @@
   <div class="panel">
     <div class="panel-header"><span class="collapse-dot">&minus;</span> Login Accounts</div>
     <div class="panel-body">
+      <p class="text-muted" style="margin:-2px 0 14px; font-size:12px; line-height:1.6;">
+        <strong>Traffic Officers</strong> can search records, view profiles, issue citations, and file infraction
+        reports. They cannot create civilian profiles or open this Admin Panel &mdash; that stays
+        <strong>Administrator</strong>-only. Create civilian profiles separately, above, under Training Profiles.
+      </p>
       <table class="data-table">
         <thead><tr><th>Username</th><th>Role</th><th>Linked Profile</th><th></th></tr></thead>
         <tbody>
           <% accounts.forEach(function(a){ %>
             <tr>
               <td><%= a.username %></td>
-              <td><%= a.role %></td>
+              <td><span class="status-pill <%= a.role === 'admin' ? 'admin-role' : 'valid' %>"><%= a.role === 'admin' ? 'Administrator' : 'Traffic Officer' %></span></td>
               <td><%= a.employeeFirstName ? a.employeeFirstName + ' ' + a.employeeLastName : '—' %></td>
               <td>
                 <form method="POST" action="/admin/accounts/<%= a.id %>?_method=DELETE" style="display:inline;" onsubmit="return confirm('Delete this account?');">
@@ -58,7 +63,10 @@
         <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
         <div class="form-group">
           <label>Role</label>
-          <select name="role"><option value="staff">Staff</option><option value="admin">Admin</option></select>
+          <select name="role">
+            <option value="staff">Traffic Officer &mdash; citations &amp; records</option>
+            <option value="admin">Administrator &mdash; full access</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Linked Profile</label>

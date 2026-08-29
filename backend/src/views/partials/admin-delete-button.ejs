@@ -1,0 +1,12 @@
+<%# Small reusable admin-only delete control for a single child record row
+    (citation, infraction, warrant, ...) shown directly on the person profile
+    page. Only ever rendered when currentUser.role === 'admin' — callers are
+    responsible for that check, since it also decides whether the extra
+    table column exists at all. Posts to the same generic
+    /admin/:resource/:id/for/:personId route the Admin panel itself uses, so
+    permissions and delete behavior stay identical; returnTo just sends the
+    admin back to this profile instead of the Admin panel edit form. %>
+<form method="POST" action="/admin/<%= resource %>/<%= id %>/for/<%= personId %>?_method=DELETE&returnTo=/person/<%= personId %>"
+      style="display:inline;" onsubmit="return confirm('Delete this record? This cannot be undone.');">
+  <button type="submit" class="action-icon danger" style="border:none;cursor:pointer;" title="Delete Record (Admin)">&#128465;</button>
+</form>

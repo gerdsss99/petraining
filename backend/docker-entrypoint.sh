@@ -17,7 +17,11 @@ echo "Applying schema..."
 node src/lib/migrate.js
 
 if [ "$SEED_ON_START" = "true" ]; then
-  echo "Seeding demo data (SEED_ON_START=true)..."
+  # seed.js itself now refuses to touch a database that already has real
+  # data in it (see the comment at the top of that file) unless
+  # FORCE_SEED=true is set — so this runs on every start/redeploy, but only
+  # actually seeds anything the first time, against an empty database.
+  echo "Checking demo data (SEED_ON_START=true)..."
   node sql/seed.js
 fi
 

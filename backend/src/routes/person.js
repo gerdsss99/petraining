@@ -101,20 +101,36 @@ router.post('/:id/infractions', requireAuth, async (req, res, next) => {
     for (const raw of manualRaw) {
       const match = await models.findPenalCodeByCode(raw);
       if (match) {
-        manualCodes.push({ rawCode: match.code, penalCodeId: match.id, codeLabel: `IC ${match.code} — ${match.title}`, fineAmount: match.fineAmount, reasonText: null });
+        manualCodes.push({ rawCode: match.code, penalCodeId: match.id, title: match.title, fineAmount: match.fineAmount, reasonText: null });
       } else {
-        manualCodes.push({ rawCode: null, penalCodeId: null, codeLabel: raw, fineAmount: 0, reasonText: null });
+        manualCodes.push({ rawCode: null, penalCodeId: null, title: raw, fineAmount: 0, reasonText: null });
       }
     }
 
-    // Merge, de-duplicating anything the paste already picked up.
+    // Picking codes manually via the PENAL CODE / + INFRACTION buttons is an
+    // explicit, deliberate choice of exactly what to file — it overrides
+    // whatever the narrative's own "Citation(s):" list happens to contain,
+    // rather than adding to it. Without this, a narrative documenting two
+    // citations (both real, but only one of which the officer meant to
+    // formally charge) would always get both attached regardless of what
+    // was picked by hand. The narrative is still used for everything else —
+    // the display text and any evidence images — just not for auto-picking
+    // codes once the officer has picked their own.
     const seen = new Set();
     const codes = [];
-    for (const c of [...parsed.codes, ...manualCodes]) {
-      const key = c.rawCode ? `code:${c.rawCode}` : `label:${c.codeLabel}`;
+    for (const c of manualRaw.length ? manualCodes : parsed.codes) {
+      const key = c.rawCode ? `code:${c.rawCode}` : `label:${c.title}`;
       if (seen.has(key)) continue;
       seen.add(key);
       codes.push(c);
+    }
+
+    // Every code's final label gets its offense count computed fresh here —
+    // "(Second Offense)", "(Third or More Offense)", or nothing for a first
+    // offense — based on this person's real prior citation history for that
+    // exact code, never on whatever offense wording the pasted report had.
+    for (const c of codes) {
+      c.codeLabel = await models.buildInfractionCodeLabel(id, c);
     }
 
     const reportedBy = req.currentUser && req.currentUser.employee

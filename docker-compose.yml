@@ -29,6 +29,7 @@ services:
       CITY_NAME: ${CITY_NAME:-Los Santos}
       PORT: 3000
       SEED_ON_START: ${SEED_ON_START:-true}
+      FORCE_SEED: ${FORCE_SEED:-false}
       TRUST_PROXY: ${TRUST_PROXY:-false}
     ports:
       - "${BIND_ADDRESS:-0.0.0.0}:${HOST_PORT:-8080}:3000"
