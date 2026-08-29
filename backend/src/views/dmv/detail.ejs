@@ -50,12 +50,21 @@
         </div>
 
         <div class="vehicle-info-col">
-          <div class="info-label">&#9432; Insurance Status</div>
+          <div class="info-label">&#128196; Registration Status</div>
           <div>
-            <span class="status-pill <%= vehicle.insured ? 'valid' : 'unpaid' %>"><%= vehicle.insured ? 'Insured' : 'Uninsured' %></span>
+            <span class="status-pill <%= vehicle.registered ? 'valid' : 'unpaid' %>"><%= vehicle.registered ? 'Registered' : 'Unregistered' %></span>
+          </div>
+
+          <div class="info-label" style="margin-top:14px;">&#9432; Insurance Status</div>
+          <div>
+            <span class="status-pill <%= vehicle.insured ? 'valid' : 'unpaid' %>">
+              <%= vehicle.insured ? 'Insured' : (vehicle.insuranceExpiredAt ? 'Expired' : 'Uninsured') %>
+            </span>
           </div>
           <% if (vehicle.insured && vehicle.insuredSince) { %>
             <div class="text-muted vehicle-info-sub">Since <%= new Date(vehicle.insuredSince).toDateString() %></div>
+          <% } else if (!vehicle.insured && vehicle.insuranceExpiredAt) { %>
+            <div class="text-muted vehicle-info-sub">Expired <%= new Date(vehicle.insuranceExpiredAt).toLocaleString() %></div>
           <% } %>
 
           <div class="info-label" style="margin-top:14px;">&#128273; Vehicle Lease Status</div>

@@ -60,6 +60,13 @@ ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "secondaryColor" TEXT;
 ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "insuredSince" TIMESTAMPTZ;
 ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "leased" BOOLEAN NOT NULL DEFAULT false;
 
+-- Set only when the quick "New Civilian Profile" form (or the general
+-- vehicle add-form) records this vehicle's insurance as "Expired" rather
+-- than "Insured"/"None" — distinct from insuredSince (which tracks when
+-- *active* coverage started) because an expired policy has no active start
+-- date worth showing, just a lapse date.
+ALTER TABLE "Vehicle" ADD COLUMN IF NOT EXISTS "insuranceExpiredAt" TIMESTAMPTZ;
+
 CREATE TABLE IF NOT EXISTS "Citation" (
   "id" SERIAL PRIMARY KEY,
   "amount" INTEGER NOT NULL,

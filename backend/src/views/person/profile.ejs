@@ -65,7 +65,7 @@
           <% person.vehicles.forEach(function(v){ %>
             <div class="mini-row">
               <span class="veh-dot <%= v.registered ? 'ok' : 'bad' %>" title="<%= v.registered ? 'Registered' : 'Unregistered' %>"></span>
-              <span class="veh-dot <%= v.insured ? 'ok' : 'bad' %>" title="<%= v.insured ? 'Insured' : 'Uninsured' %>"></span>
+              <span class="veh-dot <%= v.insured ? 'ok' : 'bad' %>" title="<%= v.insured ? 'Insured' : (v.insuranceExpiredAt ? 'Insurance expired ' + new Date(v.insuranceExpiredAt).toDateString() : 'Uninsured') %>"></span>
               <strong><a href="/dmv/<%= v.id %>"><%= v.color %> <%= v.model %></a></strong><br>
               <span class="text-muted"><%= v.plate %> &middot; #<%= v.vin %></span>
             </div>

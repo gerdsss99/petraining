@@ -175,7 +175,18 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
   Profile`) is the separate, shorter flow for a civilian record with no
   badge, rank, department, or login account — civilians and personnel are
   split into their own tables on the Admin panel so they're never mixed
-  together.
+  together. It also has an optional one-click vehicle + citation history so
+  an FTO can flesh out a training profile without touching several admin
+  screens: a Vehicle Model + Plate (leave Plate blank to skip the vehicle
+  entirely — VIN and color are filled in automatically with clearly-fake
+  values since there's no reason to ask for them here), a **Registered /
+  Licensed** checkbox, an **Insurance** dropdown (Insured / Expired / No
+  Insurance — picking Expired stamps the vehicle with a random date and time
+  in the last 45 days, shown on its DMV page), and a **Prior Citations**
+  picker (0-3) that generates that many matching Infraction Record +
+  Citation pairs — a random offense, a random Paid/Unpaid status, and a
+  random past date, with the Infraction Record's Open/Closed status always
+  matching that citation's paid state.
 - **Forced password change on first login** — every login account created
   with a temporary/initial password (via Onboard New Employee, or the
   standalone "Add Account" form in the Login Accounts panel) is flagged to

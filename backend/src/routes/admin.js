@@ -3,6 +3,9 @@ const bcrypt = require('bcryptjs');
 const models = require('../lib/models');
 const { requireAdmin } = require('../middleware/auth');
 const { generateTempPassword } = require('../lib/passwords');
+const {
+  generateCitationHistory, randomRecentExpirationDate, generateFakeVin, randomVehicleColor,
+} = require('../lib/civilianHistory');
 
 const router = express.Router();
 router.use(requireAdmin);
@@ -30,6 +33,7 @@ const CHILD_RESOURCES = {
       registered: 'boolean',
       insured: 'boolean',
       insuredSince: 'date',
+      insuranceExpiredAt: 'date',
       leased: 'boolean',
     },
   },
@@ -130,10 +134,14 @@ router.get('/people/new', async (req, res, next) => {
 
 // Civilians are a deliberately separate, much shorter flow from onboarding
 // personnel below — no badge, rank, department, or login account, just the
-// identity fields a training civilian record actually needs.
+// identity fields a training civilian record actually needs, plus (new)
+// a one-click vehicle + citation history so an FTO isn't retyping the same
+// few traffic-stop basics through several different admin screens.
 router.get('/people/new-civilian', async (req, res, next) => {
   try {
-    res.render('admin/person-form', { title: 'New Civilian Profile', person: null, departments: [], mode: 'civilian' });
+    res.render('admin/person-form', {
+      title: 'New Civilian Profile', person: null, departments: [], mode: 'civilian', error: null, formData: null,
+    });
   } catch (err) {
     next(err);
   }
@@ -141,7 +149,29 @@ router.get('/people/new-civilian', async (req, res, next) => {
 
 router.post('/people/civilian', async (req, res, next) => {
   try {
-    const { firstName, lastName, age, imageUrl } = req.body;
+    const {
+      firstName, lastName, age, imageUrl,
+      vehicleModel, vehiclePlate, vehicleRegistered, insuranceStatus, priorCitations,
+    } = req.body;
+
+    const plate = vehiclePlate && vehiclePlate.trim();
+    if (plate) {
+      const existingVehicle = await models.findVehicleByPlate(plate);
+      if (existingVehicle) {
+        // Same "hand the whole form back" treatment as the duplicate-username
+        // check on Onboard New Employee — a plate collision shouldn't cost
+        // the FTO everything else they just typed.
+        return res.status(400).render('admin/person-form', {
+          title: 'New Civilian Profile',
+          person: null,
+          departments: [],
+          mode: 'civilian',
+          error: `Plate "${plate}" is already registered to another vehicle — pick another.`,
+          formData: req.body,
+        });
+      }
+    }
+
     const person = await models.createEmployee({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -152,6 +182,58 @@ router.post('/people/civilian', async (req, res, next) => {
       isPersonnel: false,
       departmentId: null,
     });
+
+    // The vehicle block is entirely optional — leaving Plate blank means
+    // this civilian just doesn't have a car on file. VIN and color aren't
+    // asked for at all here (an FTO doing a quick intake has no reason to
+    // have one memorized); a clearly-fictional VIN and a random color are
+    // filled in automatically and can be corrected later from the vehicle's
+    // own edit form if it ever matters.
+    let vehiclePlateForCitations = null;
+    if (plate) {
+      const insuranceExpired = insuranceStatus === 'expired';
+      const vehicle = await models.insertRow('Vehicle', {
+        plate,
+        vin: generateFakeVin(),
+        model: (vehicleModel && vehicleModel.trim()) || 'Unknown',
+        color: randomVehicleColor(),
+        registered: vehicleRegistered === 'on',
+        insured: insuranceStatus === 'insured',
+        insuredSince: null,
+        insuranceExpiredAt: insuranceExpired ? randomRecentExpirationDate() : null,
+        leased: false,
+        ownerId: person.id,
+      });
+      vehiclePlateForCitations = vehicle.plate;
+    }
+
+    // "One, two, or three previous citations" — each generates a matching
+    // pair: an Infraction Record (so it shows up in that panel the same way
+    // a real filed report would) and a Citation with a random Paid/Unpaid
+    // status, the Infraction's own status mirroring that same coin flip
+    // (Closed for Paid, Open for Unpaid) so the two stay in sync.
+    const citationCount = Math.min(3, Math.max(0, parseInt(priorCitations, 10) || 0));
+    for (const c of generateCitationHistory(citationCount)) {
+      const infraction = await models.insertRow('Infraction', {
+        personId: person.id,
+        type: 'Infraction',
+        remark: c.reason,
+        status: c.status === 'Paid' ? 'Closed' : 'Open',
+        timestamp: c.timestamp,
+      });
+      await models.insertRow('Citation', {
+        personId: person.id,
+        issuedById: null,
+        amount: c.amount,
+        reason: c.reason,
+        status: c.status,
+        vehiclePlate: vehiclePlateForCitations,
+        streetName: null,
+        infractionId: infraction.id,
+        timestamp: c.timestamp,
+      });
+    }
+
     res.redirect(`/admin/people/${person.id}/edit`);
   } catch (err) {
     next(err);

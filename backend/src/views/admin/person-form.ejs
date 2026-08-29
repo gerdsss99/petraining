@@ -3,6 +3,8 @@
   var isCivilianMode = (typeof mode !== 'undefined' && mode === 'civilian');
   var formAction = person ? ('/admin/people/' + person.id + '?_method=PUT') : (isCivilianMode ? '/admin/people/civilian' : '/admin/people');
   var headerText = person ? ('Edit ' + (person.isPersonnel ? 'Employee' : 'Civilian') + ' Profile') : (isCivilianMode ? 'New Civilian Profile' : 'New Training Profile');
+  var fd = (typeof formData !== 'undefined' && formData) ? formData : {};
+  var formError = (typeof error !== 'undefined') ? error : null;
 %>
 
 <div class="panel">
@@ -15,23 +17,24 @@
         <a href="/admin/onboard">Onboard New Employee</a> instead.
       </p>
     <% } %>
+    <% if (formError) { %><div class="search-error">&#9888; <%= formError %></div><% } %>
     <form method="POST" action="<%= formAction %>">
       <div class="form-grid">
         <div class="form-group">
           <label>First Name</label>
-          <input type="text" name="firstName" required value="<%= person ? person.firstName : '' %>">
+          <input type="text" name="firstName" required value="<%= person ? person.firstName : (fd.firstName || '') %>">
         </div>
         <div class="form-group">
           <label>Last Name</label>
-          <input type="text" name="lastName" required value="<%= person ? person.lastName : '' %>">
+          <input type="text" name="lastName" required value="<%= person ? person.lastName : (fd.lastName || '') %>">
         </div>
         <div class="form-group">
           <label>Age</label>
-          <input type="number" name="age" value="<%= person && person.age ? person.age : '' %>">
+          <input type="number" name="age" value="<%= person && person.age ? person.age : (fd.age || '') %>">
         </div>
         <div class="form-group">
           <label>Photo URL</label>
-          <input type="text" name="imageUrl" value="<%= person && person.imageUrl ? person.imageUrl : '' %>">
+          <input type="text" name="imageUrl" value="<%= person && person.imageUrl ? person.imageUrl : (fd.imageUrl || '') %>">
         </div>
         <% if (!isCivilianMode) { %>
           <div class="form-group">
@@ -55,6 +58,50 @@
           </div>
         <% } %>
       </div>
+
+      <% if (isCivilianMode) { %>
+        <h4 class="section-subhead" style="text-align:left;">
+          Vehicle <span class="text-muted" style="font-weight:400;">(optional &mdash; leave Plate blank to skip)</span>
+        </h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Vehicle Model</label>
+            <input type="text" name="vehicleModel" value="<%= fd.vehicleModel || '' %>" placeholder="e.g. Everon S550">
+          </div>
+          <div class="form-group">
+            <label>Plate</label>
+            <input type="text" name="vehiclePlate" value="<%= fd.vehiclePlate || '' %>" placeholder="e.g. 8ABC123">
+          </div>
+          <div class="form-group checkbox">
+            <input type="checkbox" name="vehicleRegistered" id="civRegistered" <%= (fd.vehicleRegistered === undefined || fd.vehicleRegistered === 'on') ? 'checked' : '' %>>
+            <label for="civRegistered" style="margin:0;">Registered / Licensed</label>
+          </div>
+          <div class="form-group">
+            <label>Insurance</label>
+            <select name="insuranceStatus">
+              <option value="insured" <%= (!fd.insuranceStatus || fd.insuranceStatus === 'insured') ? 'selected' : '' %>>Insured</option>
+              <option value="expired" <%= fd.insuranceStatus === 'expired' ? 'selected' : '' %>>Expired</option>
+              <option value="none" <%= fd.insuranceStatus === 'none' ? 'selected' : '' %>>No Insurance</option>
+            </select>
+          </div>
+        </div>
+
+        <h4 class="section-subhead" style="text-align:left;">Prior Citations</h4>
+        <div class="form-group" style="max-width:320px;margin-bottom:14px;">
+          <label>Generate this many previous citations</label>
+          <select name="priorCitations">
+            <option value="0" <%= (!fd.priorCitations || fd.priorCitations === '0') ? 'selected' : '' %>>None</option>
+            <option value="1" <%= fd.priorCitations === '1' ? 'selected' : '' %>>One</option>
+            <option value="2" <%= fd.priorCitations === '2' ? 'selected' : '' %>>Two</option>
+            <option value="3" <%= fd.priorCitations === '3' ? 'selected' : '' %>>Three</option>
+          </select>
+          <p class="text-muted" style="font-size:11.5px;margin:6px 0 0;line-height:1.5;">
+            Each one adds a matching Infraction Record and Citation &mdash; a random offense, a random Paid/Unpaid
+            status, and a past date &mdash; instead of adding training history by hand.
+          </p>
+        </div>
+      <% } %>
+
       <button type="submit" class="btn"><%= person ? 'Save Changes' : 'Create Profile' %></button>
       <a class="btn btn-outline" href="/admin">Cancel</a>
     </form>
@@ -110,12 +157,14 @@
        return {
          id: v.id, plate: v.plate, model: v.model, color: v.color,
          vehicleClass: v.vehicleClass || '—', vin: v.vin,
-         registered: v.registered ? 'Yes' : 'No', insured: v.insured ? 'Yes' : 'No', leased: v.leased ? 'Yes' : 'No',
+         registered: v.registered ? 'Yes' : 'No',
+         insured: v.insured ? 'Yes' : (v.insuranceExpiredAt ? 'Expired ' + new Date(v.insuranceExpiredAt).toDateString() : 'No'),
+         leased: v.leased ? 'Yes' : 'No',
        };
      }); %>
   <%- include('../partials/admin-child-table', {
         title: 'Registered Vehicles', resource: 'vehicles', person: person, rows: vehicleRows,
-        columns: [{key:'plate',label:'Plate'},{key:'model',label:'Model'},{key:'color',label:'Color'},{key:'vehicleClass',label:'Class'},{key:'vin',label:'VIN'},{key:'registered',label:'Registered'},{key:'insured',label:'Insured'},{key:'leased',label:'Leased'}],
+        columns: [{key:'plate',label:'Plate'},{key:'model',label:'Model'},{key:'color',label:'Color'},{key:'vehicleClass',label:'Class'},{key:'vin',label:'VIN'},{key:'registered',label:'Registered'},{key:'insured',label:'Insurance'},{key:'leased',label:'Leased'}],
         addFields: [
           {name:'plate', label:'Plate', type:'text'},
           {name:'vin', label:'VIN', type:'text'},
@@ -126,6 +175,7 @@
           {name:'registered', label:'Registered', type:'checkbox'},
           {name:'insured', label:'Insured', type:'checkbox'},
           {name:'insuredSince', label:'Insured Since', type:'date'},
+          {name:'insuranceExpiredAt', label:'Insurance Expired On (if not insured)', type:'date'},
           {name:'leased', label:'Leased', type:'checkbox'}
         ]
       }) %>
