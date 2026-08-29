@@ -10,9 +10,12 @@
   <div class="login-wrap">
     <div class="login-card">
       <div class="login-side">
-        <img src="/img/seal.svg" alt="<%= cityName %> seal">
-        <h1><%= appName %></h1>
-        <p class="subtitle"><%= cityName %></p>
+        <div class="login-side-logos">
+          <img src="/img/dpw-seal.png" alt="DPW Parking Enforcement seal">
+          <img src="/img/los-santos-seal.png" alt="City of Los Santos seal">
+        </div>
+        <h1>DPW Parking Enforcement</h1>
+        <p class="subtitle">Mobile Data Computer</p>
         <div class="login-side-rule"></div>
         <p class="login-side-note">Restricted access system for authorised agency personnel. All lookups are logged.</p>
       </div>
@@ -20,7 +23,7 @@
         <h2>Sign In</h2>
         <p class="login-form-hint">Enter your issued credentials to continue.</p>
 
-        <div class="training-banner">&#9888; Training environment &mdash; fictional data only, for onboarding practice.</div>
+        <div class="training-banner">&#9888; DPW Parking Enforcement MDC Training Site &mdash; every profile, citation, and record here is completely fictional and made up for onboarding practice. Nothing on this site is real, and it is not affiliated with the City of Los Santos, GTA World, or Rockstar Games / Take-Two Interactive.</div>
 
         <% if (error) { %>
           <div class="login-error"><%= error %></div>
