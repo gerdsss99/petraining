@@ -216,7 +216,7 @@ async function findPenalCodeByCode(raw) {
 
 // How many times this exact penal code has already been filed against this
 // person, across every past Infraction Report — the count that drives the
-// "(Second Offense)" / "(Third or More Offense)" suffix. Codes that never
+// "(Second Offense)" / "(Third Offense)" / ... suffix. Codes that never
 // resolved to a PenalCode row (a typo, a code not in the reference table)
 // can't be counted this way, so callers should treat penalCodeId-less codes
 // as always a first offense.
@@ -232,6 +232,36 @@ async function countPriorOffenses(personId, penalCodeId) {
   return row ? row.count : 0;
 }
 
+// Spelled-out ordinal words for the offense-count suffix, index === the
+// offense number (index 0/1 unused — a first offense gets no suffix at
+// all). Every count keeps counting up on its own ordinal rather than
+// collapsing everything from the third offense on into one "Third or More"
+// bucket, so a person's fourth, fifth, sixth (...) offense reads as exactly
+// that.
+const ORDINAL_WORDS = [
+  null, null, 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth',
+  'Eleventh', 'Twelfth', 'Thirteenth', 'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth',
+  'Eighteenth', 'Nineteenth', 'Twentieth',
+];
+
+// Numeral fallback ("21st Offense", "32nd Offense", ...) for anything past
+// the spelled-out list above — an edge case in practice, but this keeps an
+// implausibly long history on one code correct instead of undefined.
+function numericOrdinal(n) {
+  const rem100 = n % 100;
+  if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+function ordinalOffenseWord(n) {
+  return ORDINAL_WORDS[n] || numericOrdinal(n);
+}
+
 // Builds the final "IC 418 — Prohibited Parking (Second Offense)" label for
 // one code being attached to a new report, from a clean title (the reports
 // site's own offense wording is stripped out before this ever runs — see
@@ -244,17 +274,20 @@ async function buildInfractionCodeLabel(personId, c) {
   const priorCount = await countPriorOffenses(personId, c.penalCodeId);
   const ordinal = priorCount + 1;
   if (ordinal <= 1) return base;
-  if (ordinal === 2) return `${base} (Second Offense)`;
-  return `${base} (Third or More Offense)`;
+  return `${base} (${ordinalOffenseWord(ordinal)} Offense)`;
 }
 
 // Creates an Infraction row plus its attached InfractionCode rows in one
-// go. `codes` is an array of { penalCodeId, codeLabel, fineAmount }.
+// go. `codes` is an array of { penalCodeId, codeLabel, fineAmount }. A real
+// officer files a report live, so `data.timestamp` is normally left unset
+// and defaults to now() — it exists so a backfilled/historical report (see
+// the "New Civilian Profile" quick intake in routes/admin.js) can be dated
+// in the past instead of showing as filed today.
 async function createInfractionReport(data) {
   const infraction = await one(
     `INSERT INTO "Infraction"
-       ("personId","type","remark","status","location","confidentialLevel","narrative","reportedBy","evidenceUrls")
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+       ("personId","type","remark","status","location","confidentialLevel","narrative","reportedBy","evidenceUrls","timestamp")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, COALESCE($10, now())) RETURNING *`,
     [
       data.personId,
       'Infraction Report',
@@ -265,6 +298,7 @@ async function createInfractionReport(data) {
       data.narrative || null,
       data.reportedBy || null,
       data.evidenceUrls || null,
+      data.timestamp || null,
     ]
   );
 

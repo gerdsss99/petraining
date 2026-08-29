@@ -139,9 +139,11 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
   resolves against the `PenalCode` reference table gets its own count of
   how many times *this exact code* has already been filed against *this
   person*, and the label is built from that: a first offense gets no
-  qualifier at all (`IC 418 — Prohibited Parking`), a second gets `(Second
-  Offense)`, and a third or later gets `(Third or More Offense)` — computed
-  fresh every time a report is posted, in `models.buildInfractionCodeLabel`.
+  qualifier at all (`IC 418 — Prohibited Parking`), and every offense after
+  that keeps counting up on its own ordinal — `(Second Offense)`, `(Third
+  Offense)`, `(Fourth Offense)`, and so on — rather than collapsing
+  everything from the third offense on into one bucket. Computed fresh every
+  time a report is posted, in `models.buildInfractionCodeLabel`.
 - **Issuing a Citation** — a separate step from filing the report, from a
   profile's Actions menu. Amount, reason, and an optional plate/street are
   all free text. A citation with a plate attached shows up on that
@@ -155,15 +157,16 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
   to extend.
 - **Admin panel** (visible only to `admin`-role accounts) — a sticky
   quick-nav bar (Personnel / Civilians / Login Accounts / Departments, each
-  with a live count) jumps straight to a section, and every table has its
-  own search box (filters rows as you type) and click-to-sort column
-  headers (click again to reverse). Login Accounts are either **Traffic
-  Officer** (`staff` role — search records, view profiles, issue citations,
-  file infraction reports) or **Administrator** (`admin` role — everything a
-  Traffic Officer can do, plus this Admin panel: creating civilian/personnel
-  profiles, editing every record type, and managing accounts). Traffic
-  Officer accounts have no path to the Admin panel or to creating new
-  civilians.
+  with a live count) jumps straight to a section, with one big "+ Onboard
+  New Employee" button on the right — the single entry point into that flow,
+  not duplicated elsewhere on the page. Every table has its own search box
+  (filters rows as you type) and click-to-sort column headers (click again
+  to reverse). Login Accounts are either **Traffic Officer** (`staff` role —
+  search records, view profiles, issue citations, file infraction reports)
+  or **Administrator** (`admin` role — everything a Traffic Officer can do,
+  plus this Admin panel: creating civilian/personnel profiles, editing every
+  record type, and managing accounts). Traffic Officer accounts have no path
+  to the Admin panel or to creating new civilians.
 - **Onboard New Employee** (Admin panel → Personnel, or `/admin/onboard`) —
   the one-stop flow for bringing on a new officer: creates their personnel
   profile and (optionally, via a checkbox) their login account in a single
@@ -183,12 +186,16 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
   Licensed** checkbox, an **Insurance** dropdown (Insured / Expired / No
   Insurance — picking Expired stamps the vehicle with a random date and time
   in the last 45 days, shown on its DMV page), and a **Prior Citations**
-  picker (0-3) that generates that many matching Infraction Record +
-  Citation pairs, each one **IC 418 — Prohibited Parking**, fined by offense
-  count ($1,000 first / $2,500 second / $5,000 third — lined up against each
-  citation's actual date, earliest first, not generation order) — with a
-  random Paid/Unpaid status, and the Infraction Record's Open/Closed status
-  always matching that citation's paid state.
+  picker (0-3) that generates that many real Infraction Reports (each with
+  IC 418 — Prohibited Parking attached, no narrative text needed) and their
+  matching Citations, fined by offense count ($1,000 first / $2,500 second /
+  $5,000 third — lined up against each citation's actual date, earliest
+  first, not generation order) — with a random Paid/Unpaid status, and each
+  report's Open/Closed status always matching its citation's paid state.
+  Because these are filed as real reports with a real code attached, they
+  also participate in the normal offense-count labeling described below
+  (`(Second Offense)`, `(Third Offense)`, ...) exactly like any other IC 418
+  filed against that person later.
 - **Forced password change on first login** — every login account created
   with a temporary/initial password (via Onboard New Employee, or the
   standalone "Add Account" form in the Login Accounts panel) is flagged to

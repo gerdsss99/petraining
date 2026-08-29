@@ -9,23 +9,22 @@ const crypto = require('crypto');
 // Every generated "previous citation" is the same offense — IC 418,
 // Prohibited Parking, straight from the seeded Penal Code reference table
 // (see sql/seed.js) — so an FTO doesn't have to pick or explain a specific
-// violation, just how many. "IC 418 — Prohibited Parking" for the Citation's
-// own reason and "IC 418. Prohibited Parking" for its matching Infraction
-// Record both mirror the exact formatting the real "paste a narrative"
-// report flow uses (see models.buildInfractionCodeLabel / createInfractionReport).
-const PROHIBITED_PARKING = {
-  citationReason: 'IC 418 — Prohibited Parking',
-  infractionRemark: 'IC 418. Prohibited Parking',
-};
+// violation, just how many. routes/admin.js files each one as a real
+// Infraction Report (with this code attached) the same way the "paste a
+// narrative" flow does, so the label text itself — including the offense-
+// count suffix — comes from models.buildInfractionCodeLabel, not from here.
+const PROHIBITED_PARKING_CODE = '418';
+const PROHIBITED_PARKING_TITLE = 'Prohibited Parking';
 
 // IC 418's real fine is tiered by offense count, not one flat number — which
 // is exactly why the seeded PenalCode reference table leaves its own
 // fineAmount at $0 rather than guessing (see sql/seed.js): $1,000 for a
-// first offense, $2,500 for a second, $5,000 for a third or later. A
-// brand-new civilian profile has no prior IC 418s yet, so "offense number"
-// here is just this batch's own citations in chronological order — see the
-// sort-by-date step in generateCitationHistory below, since the random
-// dates aren't generated in date order.
+// first offense, $2,500 for a second, $5,000 for a third (the form only
+// offers up to three). A brand-new civilian profile has no prior IC 418s
+// yet, so "offense number" here is just this batch's own citations in
+// chronological order — see the sort-by-date step in
+// generateCitationHistory below, since the random dates aren't generated in
+// date order.
 const PROHIBITED_PARKING_FINES = [1000, 2500, 5000];
 
 function randomItem(arr) {
@@ -52,22 +51,19 @@ function randomRecentExpirationDate() {
   return randomPastDateTime(45);
 }
 
-// One generated { citationReason, infractionRemark, amount, status,
-// timestamp } per requested prior citation — always IC 418, Prohibited
-// Parking, with the $1,000/$2,500/$5,000 offense-tiered fine lined up
-// against each citation's actual date (earliest = first offense) rather
-// than the order it happens to be generated in. status is randomly Paid or
-// Unpaid — the FTO doesn't pick this per-citation, just how many to add;
-// the matching Infraction Record for each one takes its Open/Closed status
-// from this same coin flip, so the two stay in sync (see routes/admin.js).
+// One generated { amount, status, timestamp } per requested prior citation,
+// with the $1,000/$2,500/$5,000 offense-tiered fine lined up against each
+// citation's actual date (earliest = first offense) rather than the order
+// it happens to be generated in. status is randomly Paid or Unpaid — the
+// FTO doesn't pick this per-citation, just how many to add; the matching
+// Infraction Report for each one takes its Open/Closed status from this
+// same coin flip, so the two stay in sync (see routes/admin.js).
 function generateCitationHistory(count) {
   const dates = [];
   for (let i = 0; i < count; i++) dates.push(randomPastCitationDate());
   dates.sort((a, b) => a - b);
 
   return dates.map((timestamp, i) => ({
-    citationReason: PROHIBITED_PARKING.citationReason,
-    infractionRemark: PROHIBITED_PARKING.infractionRemark,
     amount: PROHIBITED_PARKING_FINES[Math.min(i, PROHIBITED_PARKING_FINES.length - 1)],
     status: Math.random() < 0.5 ? 'Paid' : 'Unpaid',
     timestamp,
@@ -93,6 +89,8 @@ function randomVehicleColor() {
 }
 
 module.exports = {
+  PROHIBITED_PARKING_CODE,
+  PROHIBITED_PARKING_TITLE,
   generateCitationHistory,
   randomRecentExpirationDate,
   generateFakeVin,

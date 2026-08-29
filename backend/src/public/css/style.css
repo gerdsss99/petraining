@@ -377,10 +377,20 @@ a.icon-btn, a.icon-btn:hover { text-decoration: none; }
   font-size: 11px;
   font-weight: 700;
 }
+/* The one "Onboard New Employee" call-to-action — deliberately bigger than
+   the plain nav pills next to it, since this is the primary action an FTO
+   lands on this page to do, not just another jump-to-section link. There
+   used to be a second, smaller copy of this button on the Personnel panel
+   itself; that was redundant (and visually collided with this one at some
+   widths) so it's gone — this is the only one now. */
 .admin-quicknav-cta {
   margin-left: auto;
   background: var(--accent) !important;
   color: #fff !important;
+  padding: 12px 22px !important;
+  font-size: 15px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.15);
 }
 .admin-quicknav-cta .admin-quicknav-count { display: none; }
 .admin-quicknav-cta:hover { background: var(--accent-dark) !important; }

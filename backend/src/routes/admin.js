@@ -4,6 +4,7 @@ const models = require('../lib/models');
 const { requireAdmin } = require('../middleware/auth');
 const { generateTempPassword } = require('../lib/passwords');
 const {
+  PROHIBITED_PARKING_CODE, PROHIBITED_PARKING_TITLE,
   generateCitationHistory, randomRecentExpirationDate, generateFakeVin, randomVehicleColor,
 } = require('../lib/civilianHistory');
 
@@ -207,31 +208,54 @@ router.post('/people/civilian', async (req, res, next) => {
       vehiclePlateForCitations = vehicle.plate;
     }
 
-    // "One, two, or three previous citations" — each generates a matching
-    // pair: an Infraction Record (so it shows up in that panel the same way
-    // a real filed report would) and a Citation with a random Paid/Unpaid
-    // status, the Infraction's own status mirroring that same coin flip
-    // (Closed for Paid, Open for Unpaid) so the two stay in sync.
+    // "One, two, or three previous citations" — each one is filed as a real
+    // Infraction Report with one IC 418 code attached, exactly the way the
+    // "paste a narrative" flow files one (see routes/person.js and
+    // models.createInfractionReport), instead of a bare Infraction line with
+    // no report or code behind it. No narrative text is needed for that to
+    // work — only a real record per offense — and filing it this way is what
+    // makes each one show up correctly in the Infraction Records panel *and*
+    // participate in the same real offense-count labeling ("Second
+    // Offense", "Third Offense", ...) as any other code filed against this
+    // person, computed fresh from what's actually in the database rather
+    // than a number picked here. Citations are generated oldest first (see
+    // generateCitationHistory) so both the offense count and the
+    // $1,000/$2,500/$5,000 fine tier land on the right one, and each
+    // report/citation pair is backdated to that same citation's timestamp
+    // instead of showing as filed today.
     const citationCount = Math.min(3, Math.max(0, parseInt(priorCitations, 10) || 0));
-    for (const c of generateCitationHistory(citationCount)) {
-      const infraction = await models.insertRow('Infraction', {
-        personId: person.id,
-        type: 'Infraction',
-        remark: c.infractionRemark,
-        status: c.status === 'Paid' ? 'Closed' : 'Open',
-        timestamp: c.timestamp,
-      });
-      await models.insertRow('Citation', {
-        personId: person.id,
-        issuedById: null,
-        amount: c.amount,
-        reason: c.citationReason,
-        status: c.status,
-        vehiclePlate: vehiclePlateForCitations,
-        streetName: null,
-        infractionId: infraction.id,
-        timestamp: c.timestamp,
-      });
+    if (citationCount > 0) {
+      const penalCode = await models.findPenalCodeByCode(PROHIBITED_PARKING_CODE);
+      for (const c of generateCitationHistory(citationCount)) {
+        const codeLabel = await models.buildInfractionCodeLabel(person.id, {
+          rawCode: PROHIBITED_PARKING_CODE,
+          penalCodeId: penalCode ? penalCode.id : null,
+          title: PROHIBITED_PARKING_TITLE,
+        });
+        const report = await models.createInfractionReport({
+          personId: person.id,
+          remark: codeLabel,
+          status: c.status === 'Paid' ? 'Closed' : 'Open',
+          location: null,
+          confidentialLevel: 'Public',
+          narrative: null,
+          reportedBy: null,
+          evidenceUrls: null,
+          timestamp: c.timestamp,
+          codes: [{ penalCodeId: penalCode ? penalCode.id : null, codeLabel, fineAmount: c.amount, reasonText: null }],
+        });
+        await models.insertRow('Citation', {
+          personId: person.id,
+          issuedById: null,
+          amount: c.amount,
+          reason: codeLabel,
+          status: c.status,
+          vehiclePlate: vehiclePlateForCitations,
+          streetName: null,
+          infractionId: report.id,
+          timestamp: c.timestamp,
+        });
+      }
     }
 
     res.redirect(`/admin/people/${person.id}/edit`);
