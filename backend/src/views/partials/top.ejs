@@ -47,9 +47,12 @@
       </ul>
     </aside>
 
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
     <div class="main">
       <div class="topbar">
         <div class="topbar-left">
+          <button type="button" class="icon-btn menu-toggle" id="sidebarToggle" title="Menu" aria-label="Toggle navigation menu" aria-expanded="false">&#9776;</button>
           <% if (currentUser) { %>
             <span class="topbar-role"><%= currentUser.employee ? currentUser.employee.rankTitle || 'Staff' : (currentUser.role === 'admin' ? 'Administrator' : 'Traffic Officer') %>
               &mdash; <%= currentUser.employee ? currentUser.employee.firstName + ' ' + currentUser.employee.lastName : currentUser.username %></span>
@@ -71,7 +74,6 @@
           <a class="icon-btn" title="Person Lookup" href="/person">&#128269;</a>
           <button type="button" class="icon-btn" title="Recent activity">&#8635;</button>
           <button type="button" class="icon-btn" title="Notifications">&#128276;</button>
-          <button type="button" class="icon-btn" title="Menu">&#9776;</button>
           <% if (currentUser) { %>
             <form method="POST" action="/logout">
               <button type="submit" class="logout-btn">Log out</button>

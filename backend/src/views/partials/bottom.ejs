@@ -1,9 +1,43 @@
       </div>
 
       <div class="footer-note">
-        <div>(( This site is not hosted by GTA:W. This is purely a training website for members of Parking Enforcement, Department of Public Works. ))</div>
+        <div>This site is not hosted by GTA:W. This is purely a training website for members of the Parking Enforcement, Los Santos Government faction.</div>
+        <div>TRAINING SYSTEM &mdash; fictional data for roleplay onboarding purposes only. Not affiliated with, and not a copy of, any real government or law-enforcement system.</div>
+        <div>&copy; <%= new Date().getFullYear() %> &mdash; <%= cityName %></div>
       </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      var sidebar = document.querySelector('.sidebar');
+      var backdrop = document.getElementById('sidebarBackdrop');
+      var toggle = document.getElementById('sidebarToggle');
+      if (!sidebar || !backdrop || !toggle) return;
+
+      function openSidebar() {
+        sidebar.classList.add('open');
+        backdrop.classList.add('show');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+      function closeSidebar() {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+      toggle.addEventListener('click', function () {
+        if (sidebar.classList.contains('open')) closeSidebar(); else openSidebar();
+      });
+      backdrop.addEventListener('click', closeSidebar);
+      // Tapping a nav link on the mobile drawer should close it behind you,
+      // rather than leaving it open over the page you just navigated to.
+      sidebar.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', closeSidebar);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeSidebar();
+      });
+    })();
+  </script>
 </body>
 </html>

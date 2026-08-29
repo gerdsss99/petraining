@@ -34,7 +34,7 @@
 <% if (currentUser && currentUser.employee) { %>
 <div class="panel">
   <div class="panel-header"><span class="collapse-dot">&minus;</span> <%= currentUser.employee.firstName %> <%= currentUser.employee.lastName %></div>
-  <div class="panel-body" style="display:flex; align-items:center; gap:20px;">
+  <div class="panel-body dashboard-employee-card">
     <div class="profile-photo-wrap">
       <div class="profile-photo">
         <% if (currentUser.employee.imageUrl) { %>
