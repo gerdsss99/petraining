@@ -47,10 +47,10 @@ a:hover { text-decoration: underline; }
   justify-content: center;
   align-items: center;
   gap: 10px;
-  padding: 18px 0 14px;
+  padding: 20px 0 16px;
   border-bottom: 1px solid var(--border);
 }
-.sidebar-seal img { width: 62px; height: 62px; object-fit: contain; }
+.sidebar-seal img { width: 92px; height: 92px; object-fit: contain; }
 .sidebar-nav { list-style: none; margin: 0; padding: 10px 0; flex: 1; overflow-y: auto; }
 .sidebar-nav li a {
   display: flex;
@@ -803,8 +803,7 @@ textarea.narrative-source {
   text-align: center;
   justify-content: center;
 }
-.login-side-logos { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 16px; }
-.login-side-logos img { width: 84px; height: 84px; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(0,0,0,.35)); }
+  .login-side img { width: 96px; height: 96px; margin-bottom: 16px; filter: drop-shadow(0 6px 16px rgba(0,0,0,.35)); }
 .login-side h1 { font-size: 17px; margin: 0 0 4px; letter-spacing: .02em; }
 .login-side p.subtitle { color: rgba(255,255,255,.75); font-size: 12px; margin: 0; letter-spacing: .04em; text-transform: uppercase; }
 .login-side-rule { width: 40px; height: 2px; background: var(--warning); margin: 20px 0; border-radius: 2px; }
