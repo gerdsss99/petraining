@@ -6,22 +6,27 @@ const crypto = require('crypto');
 // None of this is meant to be precise — it just needs to look like a real
 // training record.
 
-// Fine amounts here are made up for training purposes rather than pulled
-// from the seeded PenalCode reference table, since most of those entries
-// carry a $0 placeholder fine (see sql/seed.js) and wouldn't read as real
-// citations on a profile.
-const CITATION_TEMPLATES = [
-  { reason: 'Speeding', amount: 150 },
-  { reason: 'Illegal Parking', amount: 50 },
-  { reason: 'Expired Registration', amount: 75 },
-  { reason: 'Running a Red Light', amount: 180 },
-  { reason: 'No Proof of Insurance', amount: 250 },
-  { reason: 'Failure to Yield', amount: 120 },
-  { reason: 'Reckless Driving', amount: 300 },
-  { reason: 'Illegal U-Turn', amount: 90 },
-  { reason: 'Unsafe Lane Change', amount: 100 },
-  { reason: 'Blocking a Crosswalk', amount: 60 },
-];
+// Every generated "previous citation" is the same offense — IC 418,
+// Prohibited Parking, straight from the seeded Penal Code reference table
+// (see sql/seed.js) — so an FTO doesn't have to pick or explain a specific
+// violation, just how many. "IC 418 — Prohibited Parking" for the Citation's
+// own reason and "IC 418. Prohibited Parking" for its matching Infraction
+// Record both mirror the exact formatting the real "paste a narrative"
+// report flow uses (see models.buildInfractionCodeLabel / createInfractionReport).
+const PROHIBITED_PARKING = {
+  citationReason: 'IC 418 — Prohibited Parking',
+  infractionRemark: 'IC 418. Prohibited Parking',
+};
+
+// IC 418's real fine is tiered by offense count, not one flat number — which
+// is exactly why the seeded PenalCode reference table leaves its own
+// fineAmount at $0 rather than guessing (see sql/seed.js): $1,000 for a
+// first offense, $2,500 for a second, $5,000 for a third or later. A
+// brand-new civilian profile has no prior IC 418s yet, so "offense number"
+// here is just this batch's own citations in chronological order — see the
+// sort-by-date step in generateCitationHistory below, since the random
+// dates aren't generated in date order.
+const PROHIBITED_PARKING_FINES = [1000, 2500, 5000];
 
 function randomItem(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -47,23 +52,26 @@ function randomRecentExpirationDate() {
   return randomPastDateTime(45);
 }
 
-// One generated { reason, amount, status, timestamp } per requested prior
-// citation. status is randomly Paid or Unpaid — the FTO doesn't pick this
-// per-citation, just how many to add; the matching Infraction Record for
-// each one takes its Open/Closed status from this same coin flip, so the
-// two stay in sync (see routes/admin.js).
+// One generated { citationReason, infractionRemark, amount, status,
+// timestamp } per requested prior citation — always IC 418, Prohibited
+// Parking, with the $1,000/$2,500/$5,000 offense-tiered fine lined up
+// against each citation's actual date (earliest = first offense) rather
+// than the order it happens to be generated in. status is randomly Paid or
+// Unpaid — the FTO doesn't pick this per-citation, just how many to add;
+// the matching Infraction Record for each one takes its Open/Closed status
+// from this same coin flip, so the two stay in sync (see routes/admin.js).
 function generateCitationHistory(count) {
-  const out = [];
-  for (let i = 0; i < count; i++) {
-    const template = randomItem(CITATION_TEMPLATES);
-    out.push({
-      reason: template.reason,
-      amount: template.amount,
-      status: Math.random() < 0.5 ? 'Paid' : 'Unpaid',
-      timestamp: randomPastCitationDate(),
-    });
-  }
-  return out;
+  const dates = [];
+  for (let i = 0; i < count; i++) dates.push(randomPastCitationDate());
+  dates.sort((a, b) => a - b);
+
+  return dates.map((timestamp, i) => ({
+    citationReason: PROHIBITED_PARKING.citationReason,
+    infractionRemark: PROHIBITED_PARKING.infractionRemark,
+    amount: PROHIBITED_PARKING_FINES[Math.min(i, PROHIBITED_PARKING_FINES.length - 1)],
+    status: Math.random() < 0.5 ? 'Paid' : 'Unpaid',
+    timestamp,
+  }));
 }
 
 // Alphabet mirrors lib/passwords.js — no 0/O/1/I/l lookalikes, in case

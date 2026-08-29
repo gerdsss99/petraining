@@ -217,7 +217,7 @@ router.post('/people/civilian', async (req, res, next) => {
       const infraction = await models.insertRow('Infraction', {
         personId: person.id,
         type: 'Infraction',
-        remark: c.reason,
+        remark: c.infractionRemark,
         status: c.status === 'Paid' ? 'Closed' : 'Open',
         timestamp: c.timestamp,
       });
@@ -225,7 +225,7 @@ router.post('/people/civilian', async (req, res, next) => {
         personId: person.id,
         issuedById: null,
         amount: c.amount,
-        reason: c.reason,
+        reason: c.citationReason,
         status: c.status,
         vehiclePlate: vehiclePlateForCitations,
         streetName: null,

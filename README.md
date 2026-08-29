@@ -184,9 +184,11 @@ stack — only deleting the volume itself (or `FORCE_SEED=true`) touches it.
   Insurance — picking Expired stamps the vehicle with a random date and time
   in the last 45 days, shown on its DMV page), and a **Prior Citations**
   picker (0-3) that generates that many matching Infraction Record +
-  Citation pairs — a random offense, a random Paid/Unpaid status, and a
-  random past date, with the Infraction Record's Open/Closed status always
-  matching that citation's paid state.
+  Citation pairs, each one **IC 418 — Prohibited Parking**, fined by offense
+  count ($1,000 first / $2,500 second / $5,000 third — lined up against each
+  citation's actual date, earliest first, not generation order) — with a
+  random Paid/Unpaid status, and the Infraction Record's Open/Closed status
+  always matching that citation's paid state.
 - **Forced password change on first login** — every login account created
   with a temporary/initial password (via Onboard New Employee, or the
   standalone "Add Account" form in the Login Accounts panel) is flagged to
